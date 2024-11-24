@@ -145,11 +145,9 @@ int __free(struct pcb_t *caller, int rgid)
     return -1;
 
   /* TODO: Manage the collect freed region to freerg_list */
-  if (&(caller->mm->symrgtbl[rgid]) == NULL)
+  rgnode = *get_symrg_byid(caller->mm, rgid);
+  if (&rgnode == NULL)
     return -1;
-  rgnode.rg_start = caller->mm->symrgtbl[rgid].rg_start;
-  rgnode.rg_end = caller->mm->symrgtbl[rgid].rg_end;
-  rgnode.rg_next = NULL;
 
   /*enlist the obsoleted memory region */
   enlist_vm_freerg_list(caller->mm, rgnode);
@@ -437,10 +435,14 @@ struct vm_rg_struct* get_vm_area_node_at_brk(struct pcb_t *caller, int vmaid, in
  */
 int validate_overlap_vm_area(struct pcb_t *caller, int vmaid, int vmastart, int vmaend)
 {
-  //struct vm_area_struct *vma = caller->mm->mmap;
+  struct vm_area_struct *vma = caller->mm->mmap;
 
   /* TODO validate the planned memory area is not overlapped */
-
+  while (vma) {
+    if (OVERLAP(vmastart, vmaend, vma->vm_start, vma->vm_end))
+      return -1;
+    vma = vma->vm_next;
+  }
 
   return 0;
 }
