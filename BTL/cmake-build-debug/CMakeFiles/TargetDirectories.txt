@@ -1,0 +1,3 @@
+C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/BTL/cmake-build-debug/CMakeFiles/BTL.dir
+C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/BTL/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/BTL/cmake-build-debug/CMakeFiles/rebuild_cache.dir
