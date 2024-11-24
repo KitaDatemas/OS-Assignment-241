@@ -481,11 +481,16 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz, int* inc_limit_re
  */
 int find_victim_page(struct mm_struct *mm, int *retpgn) 
 {
-  struct pgn_t *pg = mm->fifo_pgn;
+  struct pgn_t **pg = &mm->fifo_pgn,
+                *deletePage;
 
   /* TODO: Implement the theorical mechanism to find the victim page */
+  if (*pg == NULL)      return -1;
+  *retpgn = (*pg)->pgn;
+  deletePage = (*pg);
+  *pg = (*pg)->pg_next;
 
-  free(pg);
+  free(deletePage);
 
   return 0;
 }
