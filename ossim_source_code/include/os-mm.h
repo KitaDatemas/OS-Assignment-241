@@ -48,7 +48,7 @@ struct vm_area_struct {
  * Memory management struct
  */
 struct mm_struct {
-   uint32_t *pgd;//Chứa địa chỉ của page table
+   uint32_t *pgd;//Page table  entry
    //PAGE ENTRY | FRAME TRONG PHYSICAL MEMORY
 
    struct vm_area_struct *mmap;//Linked list dẫn tới head của vùng nhớ ảo (virtual memory area)

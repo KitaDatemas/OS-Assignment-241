@@ -204,33 +204,41 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
   if (!PAGING_PTE_PAGE_PRESENT(pte))
   { /* Page is not online, make it actively living */
     int vicpgn, swpfpn; 
-    //int vicfpn;
-    //uint32_t vicpte;
+    int vicfpn;
+    uint32_t vicpte;
 
     int tgtfpn = PAGING_PTE_SWP(pte);//the target frame storing our variable
 
     /* TODO: Play with your paging theory here */
     /* Find victim page */
     find_victim_page(caller->mm, &vicpgn);
+    vicpte = mm->pgd[pgn];
+    vicfpn = PAGING_PTE_PGN(vicpte);
+
+    if (vicpgn == -1)
+        return -1;
 
     /* Get free frame in MEMSWP */
     MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
+    if (swpfpn == -1)
+        return -1;
 
 
     /* Do swap frame from MEMRAM to MEMSWP and vice versa*/
     /* Copy victim frame to swap */
-    //__swap_cp_page();
+    __swap_cp_page(caller->mram, vicfpn, *(caller->mswp), swpfpn);
     /* Copy target frame from swap to mem */
-    //__swap_cp_page();
+    __swap_cp_page(*(caller->mswp), *fpn, caller->mram, vicfpn);
 
     /* Update page table */
-    //pte_set_swap() &mm->pgd;
+    pte_set_swap(&mm->pgd[vicpgn], 1, PAGING_OFFST(vicpgn));
 
     /* Update its online status of the target page */
-    //pte_set_fpn() & mm->pgd[pgn];
-    pte_set_fpn(&pte, tgtfpn);
+//    pte_set_fpn() & mm->pgd[pgn];
+    pte_set_fpn(&mm->pgd[pgn], tgtfpn);
 
     enlist_pgn_node(&caller->mm->fifo_pgn,pgn);
+
   }
 
   *fpn = PAGING_PTE_FPN(pte);
@@ -486,9 +494,11 @@ int find_victim_page(struct mm_struct *mm, int *retpgn)
 
   /* TODO: Implement the theorical mechanism to find the victim page */
   if (*pg == NULL)      return -1;
+  while ((*pg)->pg_next != NULL) // Vì fifo_pgn là danh sách các trang đã được sử dụng, khi thêm 1 trang sử dụng mới sẽ được thêm vào đầu. Do đó cần chọn thằng lâu nhất được add vào
+      pg = &((*pg)->pg_next);
   *retpgn = (*pg)->pgn;
   deletePage = (*pg);
-  *pg = (*pg)->pg_next;
+  *pg = NULL;
 
   free(deletePage);
 

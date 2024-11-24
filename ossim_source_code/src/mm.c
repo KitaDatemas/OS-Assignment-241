@@ -67,11 +67,11 @@ int pte_set_swap(uint32_t *pte, int swptyp, int swpoff)
  */
 int pte_set_fpn(uint32_t *pte, int fpn)
 {
-  SETBIT(*pte, PAGING_PTE_PRESENT_MASK);
-  CLRBIT(*pte, PAGING_PTE_SWAPPED_MASK);
+  SETBIT(*pte, PAGING_PTE_PRESENT_MASK);//Set bit present
+  CLRBIT(*pte, PAGING_PTE_SWAPPED_MASK);//clear bit swap
 
-  SETVAL(*pte, fpn, PAGING_PTE_FPN_MASK, PAGING_PTE_FPN_LOBIT); 
-
+  SETVAL(*pte, fpn, PAGING_PTE_FPN_MASK, PAGING_PTE_FPN_LOBIT);
+  //Cài giá trị của fpn vào pte value
   return 0;
 }
 
