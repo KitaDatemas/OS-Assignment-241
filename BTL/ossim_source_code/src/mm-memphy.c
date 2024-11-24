@@ -188,7 +188,7 @@ int init_memphy(struct memphy_struct *mp, int max_size, int randomflg)
 
    MEMPHY_format(mp,PAGING_PAGESZ);
 
-   mp->rdmflg = (randomflg != 0)?1:0;
+   mp->rdmflg = (randomflg != 0)?1:0; 
 
    if (!mp->rdmflg )   /* Not Ramdom acess device, then it serial device*/
       mp->cursor = 0;
