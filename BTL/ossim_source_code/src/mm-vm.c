@@ -145,9 +145,9 @@ int __free(struct pcb_t *caller, int rgid)
     return -1;
 
   /* TODO: Manage the collect freed region to freerg_list */
-  rgnode = *get_symrg_byid(caller->mm, rgid);
-  if (&rgnode == NULL)
+  if (get_symrg_byid(caller->mm, rgid) == NULL)
     return -1;
+  rgnode = *get_symrg_byid(caller->mm, rgid);
 
   /*enlist the obsoleted memory region */
   enlist_vm_freerg_list(caller->mm, rgnode);
