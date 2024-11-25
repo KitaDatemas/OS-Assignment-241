@@ -85,28 +85,62 @@ int vmap_page_range(struct pcb_t *caller, // process call
            struct framephy_struct *frames,// list of the mapped frames
               struct vm_rg_struct *ret_rg)// return mapped region, the real mapped fp
 {                                         // no guarantee all given pages are mapped
+  /*
+   cập nhật cho mỗi rg_end rg_start bằng addr bắt đầu, 
+   với mỗi page được thêm vào thì dời dời end lên 
+
+  */
   //uint32_t * pte = malloc(sizeof(uint32_t));
   struct framephy_struct *fpit = malloc(sizeof(struct framephy_struct));
-  //int  fpn;
+  int  fpn;
   int pgit = 0;
   int pgn = PAGING_PGN(addr);
-
+  // get the pos of next pte 
+  uint32_t *pte= malloc(sizeof(uint32_t));
+  if(!pte){
+    printf("Can't malloc pte");
+  }
+  // lấy giá trị của address của 
   /* TODO: update the rg_end and rg_start of ret_rg 
   //ret_rg->rg_end =  ....
   //ret_rg->rg_start = ...
   //ret_rg->vmaid = ...
   */
-
+  ret_rg->rg_end=addr;
+  ret_rg->rg_start= addr;
+  // vmaid ráng bằng gì :)))
+  //nó chỉ đã tạo ret_rg trước đó và có vmaid
   fpit->fp_next = frames;
 
   /* TODO map range of frame to address space 
    *      in page table pgd in caller->mm
    */
+  for(; pgit<pgnum; ++pgit){
+    if(!fpit){
+      printf("NO frame in %d ", pgit);
+    }
+    fpit=fpit->fp_next;
+    int fpn= fpit->fpn;
+    // use this because the when fpit is the last the next is null it can made some problem
+    if(init_pte(pte, 1, fpn, 0,0,0,0)!=0){
+      printf("init_pte failed");
+    }
+    caller->mm->pgd[pgn+pgit]=*pte;
 
+    //update the rg_end  by increase page size
+
+    ret_rg->rg_end= PAGING_PAGESZ;
+    // printf("Mapped region [%ld->%ld] to frame %d with PTE: 0x%08x\n",
+    //            ret_rg->rg_start, ret_rg->rg_end, fpn, *pte); 
+    enlist_pgn_node(&caller->mm->fifo_pgn, pgn+pgit);
+
+  }
    /* Tracking for later page replacement activities (if needed)
     * Enqueue new usage page */
-   enlist_pgn_node(&caller->mm->fifo_pgn, pgn+pgit);
 
+  // attach used frame to the mram 
+  // don't need to allocate frame to 
+  free(pte);
 
   return 0;
 }
