@@ -138,9 +138,10 @@ int vmap_page_range(struct pcb_t *caller, // process call
    /* Tracking for later page replacement activities (if needed)
     * Enqueue new usage page */
 
-  // attach used frame to the mram 
-  // don't need to allocate frame to 
+  // frame has been acllocated in the RAM
   free(pte);
+
+  // add nó vào symrgtbl nếu có thể cái array ko biết add như nào ko thấy index:)
 
   return 0;
 }
@@ -152,12 +153,18 @@ int vmap_page_range(struct pcb_t *caller, // process call
  * @frm_lst   : frame list
  */
 
-int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struct** frm_lst)
+int alloc_pages_range(struct pcb_t *caller, 
+                      int req_pgnum, 
+                      struct framephy_struct** frm_lst)
+//xin địa chỉ trong ram của cho các frm nhớ  nếu địa chỉ trống không đủ thì swap ra ngoài  
 {
   int pgit, fpn;
-  //struct framephy_struct *newfp_str;
-
-
+  struct framephy_struct *newfp_str;
+  struct mm_struct* mm  = caller->mm;
+  if(!mm){
+    printf(" mm failed");
+  }
+  
   /* TODO: allocate the page 
   //caller-> ...
   //frm_lst-> ...
@@ -166,11 +173,49 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
   {
     if(MEMPHY_get_freefp(caller->mram, &fpn) == 0)
    {
-     
-   } else {  // ERROR CODE of obtaining somes but not enough frames
+     newfp_str= malloc(sizeof(struct framephy_struct));
+     newfp_str->fpn= fpn;
+     newfp_str->owner=mm;
+
+     newfp_str->fp_next= *frm_lst;
+     *frm_lst=newfp_str;
+     // add fram into used frame list
+     struct framephy_struct *new_used_ls= malloc(sizeof(struct framephy_struct));
+     new_used_ls->fpn = fpn;
+     new_used_ls->owner = mm;
+     new_used_ls->fp_next= caller->mram->used_fp_list;
+     caller->mram->used_fp_list= new_used_ls;
+   } else {  // ERROR CODE of obtaining somes but not enough frames 
+    
+   // nếu không tìm được chỗ trống trong mram tìm page phải giải phòng một frame trong page và đổi chỗ với **mswp
+    // tìm chỗ trống trong active_swap nếu có thì hoán đổi ô nhớ trống.
+    // tìm pte của ô nhớ trong ram cần được thay
+    if(MEMPHY_get_freefp(caller->active_mswp, &fpn) == 0)
+    {
+      int victim_page;
+      int page= fpn;
+
+      victim_page=find_victim_page(mm , &victim_page);
+      // change the pte of victim_page to swap
+      //remember do this 
+
+
+      
+      __swap_cp_page(caller->mram, victim_page, caller->active_mswp, page);
+      // in this function we must add the frg to the used_list in 
+     struct framephy_struct *new_used_ls= malloc(sizeof(struct framephy_struct));
+     new_used_ls->fpn = fpn;
+     new_used_ls->owner = mm;
+     new_used_ls->fp_next= caller->active_mswp->used_fp_list;
+    }else{
+      return 3000;
+      // return because there is no empty space in 
+      // can get freefp in the **swmem but in this assignment we only use one swap so just use active_mswp
+    }
+
    } 
  }
-
+  
   return 0;
 }
 
@@ -196,15 +241,16 @@ int vm_map_ram(struct pcb_t *caller, int astart, int aend, int mapstart, int inc
    *in endless procedure of swap-off to get frame and we have not provide 
    *duplicate control mechanism, keep it simple
    */
-  ret_alloc = alloc_pages_range(caller, incpgnum, &frm_lst);
 
+  ret_alloc = alloc_pages_range(caller, incpgnum, &frm_lst);
+  // alloc_pages_range to create frm_lst make it  in the ram 
   if (ret_alloc < 0 && ret_alloc != -3000)
     return -1;
 
   /* Out of memory */
   if (ret_alloc == -3000) 
   {
-#ifdef MMDBG
+#ifdef MMDBGxd
      printf("OOM: vm_map_ram out of memory \n");
 #endif
      return -1;
@@ -213,7 +259,6 @@ int vm_map_ram(struct pcb_t *caller, int astart, int aend, int mapstart, int inc
   /* it leaves the case of memory is enough but half in ram, half in swap
    * do the swaping all to swapper to get the all in ram */
   vmap_page_range(caller, mapstart, incpgnum, frm_lst, ret_rg);
-
   return 0;
 }
 
