@@ -119,6 +119,7 @@ int vmap_page_range(struct pcb_t *caller, // process call
     if(!fpit){
       printf("NO frame in %d ", pgit);
     }
+    struct framephy_struct *temp= fpit;
     fpit=fpit->fp_next;
     int fpn= fpit->fpn;
     // use this because the when fpit is the last the next is null it can made some problem
@@ -134,9 +135,15 @@ int vmap_page_range(struct pcb_t *caller, // process call
     //            ret_rg->rg_start, ret_rg->rg_end, fpn, *pte); 
     enlist_pgn_node(&caller->mm->fifo_pgn, pgn+pgit);
 
+    if(temp){
+      free(temp);// delete the fr because add 
+    }
   }
    /* Tracking for later page replacement activities (if needed)
     * Enqueue new usage page */
+
+   //Delete the frame because this need
+
 
   // frame has been acllocated in the RAM
   free(pte);
@@ -164,7 +171,6 @@ int alloc_pages_range(struct pcb_t *caller,
   if(!mm){
     printf(" mm failed");
   }
-  
   /* TODO: allocate the page 
   //caller-> ...
   //frm_lst-> ...
@@ -176,39 +182,58 @@ int alloc_pages_range(struct pcb_t *caller,
      newfp_str= malloc(sizeof(struct framephy_struct));
      newfp_str->fpn= fpn;
      newfp_str->owner=mm;
-
      newfp_str->fp_next= *frm_lst;
      *frm_lst=newfp_str;
-     // add fram into used frame list
+
+     // add fram into used frame list if we need we can you it 
      struct framephy_struct *new_used_ls= malloc(sizeof(struct framephy_struct));
      new_used_ls->fpn = fpn;
      new_used_ls->owner = mm;
      new_used_ls->fp_next= caller->mram->used_fp_list;
      caller->mram->used_fp_list= new_used_ls;
    } else {  // ERROR CODE of obtaining somes but not enough frames 
-    
    // nếu không tìm được chỗ trống trong mram tìm page phải giải phòng một frame trong page và đổi chỗ với **mswp
     // tìm chỗ trống trong active_swap nếu có thì hoán đổi ô nhớ trống.
     // tìm pte của ô nhớ trong ram cần được thay
+    // thay pte tro tới vùng swap
+    // cập nhật frm_lst với fpn là fpn của ram
     if(MEMPHY_get_freefp(caller->active_mswp, &fpn) == 0)
     {
       int victim_page;
-      int page= fpn;
+      int no_fpn_sw= fpn;
 
       victim_page=find_victim_page(mm , &victim_page);
       // change the pte of victim_page to swap
-      //remember do this 
-
-
+      // find pte from victim page
+      addr_t *pte= mm->pgd[victim_page];
       
-      __swap_cp_page(caller->mram, victim_page, caller->active_mswp, page);
-      // in this function we must add the frg to the used_list in 
+      int no_fpn_ram=PAGING_PTE_FPN(*pte);
+      // lấy fpn in ram to swap 
+
+      // after have the fpn in ram we  need to change the pte
+      // in swaptype= 1 => swap in swap 1 | in acitve swap
+      if(!init_pte(pte,1, 0, 0, 1, 1, no_fpn_sw)==0){
+          printf("can't change the pte from ram mode to ")
+      }
+      mm->pgd[victim_page]=pte;
+      
+      __swap_cp_page(caller->mram, no_fpn_ram , caller->active_mswp, no_fpn_sw);
+      // swap the content of no_fpn_ram to no_fpn_sư
+      // create the framestruct again with the fpn=no_fpn_ram 
+     newfp_str= malloc(sizeof(struct framephy_struct));
+     newfp_str->fpn= no_fpn_ram;
+     newfp_str->owner=mm;
+     newfp_str->fp_next= *frm_lst;
+     *frm_lst=newfp_str;
+    //add a new list 
      struct framephy_struct *new_used_ls= malloc(sizeof(struct framephy_struct));
      new_used_ls->fpn = fpn;
      new_used_ls->owner = mm;
      new_used_ls->fp_next= caller->active_mswp->used_fp_list;
     }else{
-      return 3000;
+      if(MEMPHY_get_freefp(caller->mram, &fpn) <0 && 
+        MEMPHY_get_freefp(caller->active_mswp, &fpn) <0 ) return -3000;
+      else return -1;
       // return because there is no empty space in 
       // can get freefp in the **swmem but in this assignment we only use one swap so just use active_mswp
     }
