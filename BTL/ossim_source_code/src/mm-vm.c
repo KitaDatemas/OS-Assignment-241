@@ -47,7 +47,7 @@ struct vm_area_struct *get_vma_by_num(struct mm_struct *mm, int vmaid)
   while (vmait < vmaid)
   {
     if(pvma == NULL)
-	  return NULL;
+	    return NULL;
 
     vmait++;
     pvma = pvma->vm_next;
@@ -84,6 +84,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
 
   /* TODO: commit the vmaid */
   // rgnode.vmaid
+  rgnode.vmaid = vmaid;
 
   if (get_free_vmrg_area(caller, vmaid, size, &rgnode) == 0)
   {
@@ -101,21 +102,22 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
 
   /* TODO retrive current vma if needed, current comment out due to compiler redundant warning*/
   /*Attempt to increate limit to get space */
-  //struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
-
+  struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
 
   int inc_sz = PAGING_PAGE_ALIGNSZ(size);
   int inc_limit_ret;
 
   /* TODO retrive old_sbrk if needed, current comment out due to compiler redundant warning*/
-  //int old_sbrk = cur_vma->sbrk;
+  int old_sbrk = cur_vma->sbrk;
 
   /* TODO INCREASE THE LIMIT
    * inc_vma_limit(caller, vmaid, inc_sz)
    */
-  inc_vma_limit(caller, vmaid, inc_sz, &inc_limit_ret);
+  if (inc_vma_limit(caller, vmaid, inc_sz, &inc_limit_ret) < 0)
+    return -1;
 
   /* TODO: commit the limit increment */
+  
 
   /* TODO: commit the allocation address 
   // *alloc_addr = ...
@@ -471,6 +473,17 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz, int* inc_limit_re
   /* TODO: Obtain the new vm area based on vmaid */
   //cur_vma->vm_end... 
   // inc_limit_ret...
+  if (vmaid == 0) {
+    cur_vma->vm_end += inc_sz;
+    cur_vma->sbrk += inc_sz; 
+
+  }
+  else if (vmaid == 1) {
+    cur_vma->vm_end -= inc_sz;
+    cur_vma->sbrk -= inc_sz;
+  }
+
+  *inc_limit_ret = cur_vma->vm_end;
 
   if (vm_map_ram(caller, area->rg_start, area->rg_end, 
                     old_end, incnumpage , newrg) < 0)
