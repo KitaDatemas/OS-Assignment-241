@@ -105,9 +105,9 @@ int vmap_page_range(struct pcb_t *caller, // process call
   //ret_rg->rg_end =  ....
   //ret_rg->rg_start = ...
   //ret_rg->vmaid = ...
-  */
-  ret_rg->rg_end=addr;
+  */  
   ret_rg->rg_start= addr;
+  ret_rg->rg_end=ret_rg->rg_start+ pgnum*PAGING_PAGESZ;
   // vmaid ráng bằng gì :)))
   //nó chỉ đã tạo ret_rg trước đó và có vmaid
   fpit->fp_next = frames;
@@ -129,8 +129,6 @@ int vmap_page_range(struct pcb_t *caller, // process call
     caller->mm->pgd[pgn+pgit]=*pte;
 
     //update the rg_end  by increase page size
-
-    ret_rg->rg_end= PAGING_PAGESZ;
     // printf("Mapped region [%ld->%ld] to frame %d with PTE: 0x%08x\n",
     //            ret_rg->rg_start, ret_rg->rg_end, fpn, *pte); 
     enlist_pgn_node(&caller->mm->fifo_pgn, pgn+pgit);
@@ -185,40 +183,45 @@ int alloc_pages_range(struct pcb_t *caller,
      newfp_str->fp_next= *frm_lst;
      *frm_lst=newfp_str;
 
-     // add fram into used frame list if we need we can you it 
+     // add fram into used frame list if we need we can you it , may be it is unused in this assignment
      struct framephy_struct *new_used_ls= malloc(sizeof(struct framephy_struct));
      new_used_ls->fpn = fpn;
      new_used_ls->owner = mm;
      new_used_ls->fp_next= caller->mram->used_fp_list;
      caller->mram->used_fp_list= new_used_ls;
+
    } else {  // ERROR CODE of obtaining somes but not enough frames 
-   // nếu không tìm được chỗ trống trong mram tìm page phải giải phòng một frame trong page và đổi chỗ với **mswp
+
+    if(MEMPHY_get_freefp(caller->active_mswp, &fpn) == 0)
+    {
+    // nếu không tìm được chỗ trống trong mram tìm page phải giải phòng một frame trong page và đổi chỗ với **mswp
     // tìm chỗ trống trong active_swap nếu có thì hoán đổi ô nhớ trống.
     // tìm pte của ô nhớ trong ram cần được thay
     // thay pte tro tới vùng swap
     // cập nhật frm_lst với fpn là fpn của ram
-    if(MEMPHY_get_freefp(caller->active_mswp, &fpn) == 0)
-    {
+    // Detail  change the data of the victime_page->fpn to the swap and add new data to this
       int victim_page;
       int no_fpn_sw= fpn;
 
-      victim_page=find_victim_page(mm , &victim_page);
+      if(find_victim_page(mm , &victim_page)<0){
+        printf("can't find victim page");
+      }
       // change the pte of victim_page to swap
       // find pte from victim page
-      addr_t *pte= mm->pgd[victim_page];
-      
+      uint32_t *pte= malloc(sizeof(uint32_t));
+      *pte= mm->pgd[victim_page];
       int no_fpn_ram=PAGING_PTE_FPN(*pte);
       // lấy fpn in ram to swap 
 
       // after have the fpn in ram we  need to change the pte
       // in swaptype= 1 => swap in swap 1 | in acitve swap
       if(!init_pte(pte,1, 0, 0, 1, 1, no_fpn_sw)==0){
-          printf("can't change the pte from ram mode to ")
+          printf("can't change the pte from ram mode to ");
       }
-      mm->pgd[victim_page]=pte;
+      mm->pgd[victim_page]=*pte;
       
-      __swap_cp_page(caller->mram, no_fpn_ram , caller->active_mswp, no_fpn_sw);
-      // swap the content of no_fpn_ram to no_fpn_sư
+     __swap_cp_page(caller->mram, no_fpn_ram , caller->active_mswp, no_fpn_sw);
+       // swap the content of no_fpn_ram to no_fpn_sư
       // create the framestruct again with the fpn=no_fpn_ram 
      newfp_str= malloc(sizeof(struct framephy_struct));
      newfp_str->fpn= no_fpn_ram;
