@@ -82,7 +82,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   struct vm_rg_struct rgnode;
 
   /* TODO: commit the vmaid */
-//  rgnode.vmaid = vmaid;
+  rgnode.vmaid = vmaid;
 
   if (get_free_vmrg_area(caller, vmaid, size, &rgnode) == 0)
   {
@@ -95,31 +95,33 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
 
     return 0;
   }
-
   /* TODO: get_free_vmrg_area FAILED handle the region management (Fig.6)*/
-
   /* TODO retrive current vma if needed, current comment out due to compiler redundant warning*/
   /*Attempt to increate limit to get space */
-  //struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
-
+  struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
 
   int inc_sz = PAGING_PAGE_ALIGNSZ(size);
   int inc_limit_ret;
 
   /* TODO retrive old_sbrk if needed, current comment out due to compiler redundant warning*/
-  //int old_sbrk = cur_vma->sbrk;
+//  int old_sbrk = cur_vma->sbrk;
 
   /* TODO INCREASE THE LIMIT
    * inc_vma_limit(caller, vmaid, inc_sz)
    */
-  inc_vma_limit(caller, vmaid, inc_sz, &inc_limit_ret);
+  if (inc_vma_limit(caller, vmaid, inc_sz, &inc_limit_ret) == -1)
+      return -1;
 
   /* TODO: commit the limit increment */
+  get_free_vmrg_area(caller, vmaid, size, &rgnode);
 
+  caller->mm->symrgtbl[rgid].rg_start = rgnode.rg_start;
+  caller->mm->symrgtbl[rgid].rg_end = rgnode.rg_end;
+  caller->mm->symrgtbl[rgid].vmaid = rgnode.vmaid;
   /* TODO: commit the allocation address 
   // *alloc_addr = ...
   */
-
+  *alloc_addr = rgnode.rg_start;
   return 0;
 }
 
@@ -435,7 +437,6 @@ struct vm_rg_struct* get_vm_area_node_at_brk(struct pcb_t *caller, int vmaid, in
 
       newrg->rg_start = cur_vma->sbrk;
       newrg->rg_end = newrg->rg_start - size;
-      newrg->rg_next = NULL;
 
       cur_vma->sbrk -= size;
   } else {
@@ -444,10 +445,10 @@ struct vm_rg_struct* get_vm_area_node_at_brk(struct pcb_t *caller, int vmaid, in
 
       newrg->rg_start = cur_vma->sbrk;
       newrg->rg_end = newrg->rg_start + size;
-      newrg->rg_next = NULL;
 
       cur_vma->sbrk += size;
   }
+  newrg->rg_next = NULL;
   return newrg;
 }
 
