@@ -59,7 +59,6 @@ struct vm_area_struct *get_vma_by_num(struct mm_struct *mm, int vmaid)
 /*get_symrg_byid - get mem region by region ID
  *@mm: memory region
  *@rgid: region ID act as symbol index of variable
- *
  */
 struct vm_rg_struct *get_symrg_byid(struct mm_struct *mm, int rgid)
 {
@@ -83,7 +82,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   struct vm_rg_struct rgnode;
 
   /* TODO: commit the vmaid */
-  // rgnode.vmaid
+//  rgnode.vmaid = vmaid;
 
   if (get_free_vmrg_area(caller, vmaid, size, &rgnode) == 0)
   {
@@ -238,7 +237,6 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     pte_set_fpn(&mm->pgd[pgn], tgtfpn);
 
     enlist_pgn_node(&caller->mm->fifo_pgn,pgn);
-
   }
 
   *fpn = PAGING_PTE_FPN(pte);
@@ -412,23 +410,44 @@ int free_pcb_memph(struct pcb_t *caller)
  *@caller: caller
  *@vmaid: ID vm area to alloc memory region
  *@incpgnum: number of page
- *@vmastart: vma end
+ *@vmastart: vma start
  *@vmaend: vma end
  *
  */
 struct vm_rg_struct* get_vm_area_node_at_brk(struct pcb_t *caller, int vmaid, int size, int alignedsz)
 {
   struct vm_rg_struct * newrg;
+
   /* TODO retrive current vma to obtain newrg, current comment out due to compiler redundant warning*/
-  //struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
+  struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
+
+  if (cur_vma == NULL)
+      return NULL;
 
   newrg = malloc(sizeof(struct vm_rg_struct));
 
   /* TODO: update the newrg boundary
-  // newrg->rg_start = ...
-  // newrg->rg_end = ...
   */
 
+  if (vmaid) {
+      if (cur_vma->sbrk + size >= cur_vma->vm_end)
+          return NULL;
+
+      newrg->rg_start = cur_vma->sbrk;
+      newrg->rg_end = newrg->rg_start - size;
+      newrg->rg_next = NULL;
+
+      cur_vma->sbrk -= size;
+  } else {
+      if (cur_vma->sbrk + size >= cur_vma->vm_end)
+          return NULL;
+
+      newrg->rg_start = cur_vma->sbrk;
+      newrg->rg_end = newrg->rg_start + size;
+      newrg->rg_next = NULL;
+
+      cur_vma->sbrk += size;
+  }
   return newrg;
 }
 

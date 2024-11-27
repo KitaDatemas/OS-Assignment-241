@@ -17,7 +17,8 @@ struct pgn_t{
 /*
  *  Memory region struct
  */
-struct vm_rg_struct {
+struct
+vm_rg_struct {
    int vmaid;
 
    unsigned long rg_start;
