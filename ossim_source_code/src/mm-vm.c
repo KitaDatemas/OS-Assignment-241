@@ -416,8 +416,8 @@ int free_pcb_memph(struct pcb_t *caller)
  *@vmaend: vma end
  *
  */
-struct vm_rg_struct* get_vm_area_node_at_brk(struct pcb_t *caller, int vmaid, int size, int alignedsz)
-{
+struct vm_rg_struct* (struct pcb_t *caller, int vmaid, int size, int alignedsz)
+{get_vm_area_node_at_brk
   struct vm_rg_struct * newrg;
 
   /* TODO retrive current vma to obtain newrg, current comment out due to compiler redundant warning*/
