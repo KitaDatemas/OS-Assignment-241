@@ -95,7 +95,7 @@
 /* Memory range operator */
 /* TODO implement the INCLUDE checking mechanism - currently dummy op only */
 #define INCLUDE(x1,x2,y1,y2) (0)
-/* TODO implement the OVERLAP checking mechanism - currently dummy op only */
+ /* TODO implement the OVERLAP checking mechanism - currently dummy op only */
 #define OVERLAP(x1,x2,y1,y2) ( 1)
 
 /* VM region prototypes */

@@ -432,7 +432,7 @@ struct vm_rg_struct* get_vm_area_node_at_brk(struct pcb_t *caller, int vmaid, in
   */
 
   if (vmaid) {
-      if (cur_vma->sbrk + size >= cur_vma->vm_end)
+      if (cur_vma->sbrk - size < cur_vma->vm_end)
           return NULL;
 
       newrg->rg_start = cur_vma->sbrk;
@@ -440,7 +440,7 @@ struct vm_rg_struct* get_vm_area_node_at_brk(struct pcb_t *caller, int vmaid, in
 
       cur_vma->sbrk -= size;
   } else {
-      if (cur_vma->sbrk + size >= cur_vma->vm_end)
+      if (cur_vma->sbrk + size > cur_vma->vm_end)
           return NULL;
 
       newrg->rg_start = cur_vma->sbrk;
