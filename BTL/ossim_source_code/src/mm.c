@@ -140,8 +140,6 @@ int vmap_page_range(struct pcb_t *caller, // process call
    /* Tracking for later page replacement activities (if needed)
     * Enqueue new usage page */
 
-   //Delete the frame because this need
-
 
   // frame has been acllocated in the RAM
   free(pte);
@@ -295,7 +293,7 @@ int vm_map_ram(struct pcb_t *caller, int astart, int aend, int mapstart, int inc
  * @srcfpn : source physical page number (FPN)
  * @mpdst  : destination memphy
  * @dstfpn : destination physical page number (FPN)
- **/
+ **/       
 int __swap_cp_page(struct memphy_struct *mpsrc, int srcfpn,
                 struct memphy_struct *mpdst, int dstfpn) 
 {
@@ -336,7 +334,6 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
 
   /* TODO update VMA0 next */
   // vma0->next = ...
-
   /* TODO: update one vma for HEAP */
   // vma1->vm_id = ...
   // vma1->vm_start = ...
