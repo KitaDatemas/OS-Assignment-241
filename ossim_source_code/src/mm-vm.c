@@ -416,8 +416,8 @@ int free_pcb_memph(struct pcb_t *caller)
  *@vmaend: vma end
  *
  */
-struct vm_rg_struct* (struct pcb_t *caller, int vmaid, int size, int alignedsz)
-{get_vm_area_node_at_brk
+struct vm_rg_struct* get_vm_area_node_at_brk(struct pcb_t *caller, int vmaid, int size, int alignedsz)
+{
   struct vm_rg_struct * newrg;
 
   /* TODO retrive current vma to obtain newrg, current comment out due to compiler redundant warning*/
@@ -509,7 +509,7 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz, int* inc_limit_re
  */
 int find_victim_page(struct mm_struct *mm, int *retpgn) 
 {
-  struct pgn_t **pg = &mm->fifo_pgn,
+  struct pgn_t **pg = &(mm->fifo_pgn),
                 *deletePage;
 
   /* TODO: Implement the theorical mechanism to find the victim page */
