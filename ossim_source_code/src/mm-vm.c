@@ -213,7 +213,7 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     /* TODO: Play with your paging theory here */
     /* Find victim page */
     find_victim_page(caller->mm, &vicpgn);
-    vicpte = mm->pgd[pgn];
+    vicpte = mm->pgd[vicpgn];
     vicfpn = PAGING_PTE_PGN(vicpte);
 
     if (vicpgn == -1)
