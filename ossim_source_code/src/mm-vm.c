@@ -228,7 +228,7 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     /* Copy victim frame to swap */
     __swap_cp_page(caller->mram, vicfpn, *(caller->mswp), swpfpn);
     /* Copy target frame from swap to mem */
-    __swap_cp_page(*(caller->mswp), *fpn, caller->mram, vicfpn);
+    __swap_cp_page(*(caller->mswp), *fpn, caller->mram, tgtfpn);
 
     /* Update page table */
     pte_set_swap(&mm->pgd[vicpgn], 1, PAGING_OFFST(vicpgn));
