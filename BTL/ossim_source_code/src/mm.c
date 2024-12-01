@@ -231,6 +231,7 @@ int alloc_pages_range(struct pcb_t *caller,
      new_used_ls->fpn = fpn;
      new_used_ls->owner = mm;
      new_used_ls->fp_next= caller->active_mswp->used_fp_list;
+     caller->active_mswp->used_fp_list=new_used_ls;
     }else{
       if(MEMPHY_get_freefp(caller->mram, &fpn) <0 && 
         MEMPHY_get_freefp(caller->active_mswp, &fpn) <0 ) return -3000;
@@ -333,8 +334,20 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
   enlist_vm_rg_node(&vma0->vm_freerg_list, first_rg);
 
   /* TODO update VMA0 next */
-  // vma0->next = ...
+  vma0->vm_next= vma1;
+
+
+
   /* TODO: update one vma for HEAP */
+  vma1->vm_id=1;
+  vma1->vm_start= PAGING_SBRK_INIT_SZ;
+  vma1->vm_end= vma1->vm_start;
+  vma1->sbrk = vma1->vm_start;
+
+  struct vm_rg_struct *first_rg = init_vm_rg(vma0->vm_start, vma0->vm_end, 0);
+  enlist_vm_rg_node(&vma1->vm_freerg_list, first_rg);
+
+  vma1->vm_next= NULL;
   // vma1->vm_id = ...
   // vma1->vm_start = ...
   // vma1->vm_end = ...
@@ -349,7 +362,7 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
 
   /* TODO: update mmap */
   //mm->mmap = ...
-
+  mm->mmap = vma0;
   return 0;
 }
 

@@ -95,10 +95,10 @@
 
 /* Memory range operator */
 /* TODO implement the INCLUDE checking mechanism - currently dummy op only */
-#define INCLUDE(x1,x2,y1,y2) ((x1<=y1)&& (x2>= y2))
+#define INCLUDE(x1,x2,y1,y2) ((x1<=y1)&& (y2<=x2) || (y1<=x1)&&(x2<=y2))
 // to check (y1, y2) belong to (x1,x2)
 /* TODO implement the OVERLAP checking mechanism - currently dummy op only */
-#define OVERLAP(x1,x2,y1,y2) ((x1<=y2)|| (x2>=y1))
+#define OVERLAP(x1,x2,y1,y2) (((x2>=x1)&&!((x2 < y1) || (y2 < x1)))/* stack */|| ((x2<x1)&& !((x2>y1)||(y2>x1)))/*heap*/)
 // to check (y1, y2) have the same some elements with (x1,x2)
 
 
