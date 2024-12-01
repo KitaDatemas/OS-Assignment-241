@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="BTL"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="BTL">
+				<Option output="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/BTL.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/include"/>
+					<Add directory="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/include"/>
+					<Add directory="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../include"/>
+					<Add directory="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/include-fixed"/>
+					<Add directory="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../x86_64-w64-mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/Makefile&quot;  VERBOSE=1 BTL"/>
+					<CompileFile command="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="BTL/fast">
+				<Option output="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/BTL.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/include"/>
+					<Add directory="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/include"/>
+					<Add directory="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../include"/>
+					<Add directory="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/include-fixed"/>
+					<Add directory="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../x86_64-w64-mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/Makefile&quot;  VERBOSE=1 BTL/fast"/>
+					<CompileFile command="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="D:/IDE Clion/CLion 2023.3.2/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/include/bitops.h">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/include/common.h">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/include/cpu.h">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/include/loader.h">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/include/mem.h">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/include/mm.h">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/include/os-cfg.h">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/include/os-mm.h">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/include/queue.h">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/include/sched.h">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/include/timer.h">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/src/cpu.c">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/src/loader.c">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/src/mem.c">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/src/mm-memphy.c">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/src/mm-vm.c">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/src/mm.c">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/src/os.c">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/src/paging.c">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/src/queue.c">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/src/sched.c">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/ossim_source_code/src/timer.c">
+			<Option target="BTL"/>
+		</Unit>
+		<Unit filename="C:/Users/ASUS/OneDrive/Documents/Hệ điều hành/OS-Assignment-241/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

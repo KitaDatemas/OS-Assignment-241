@@ -98,7 +98,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   /* TODO: get_free_vmrg_area FAILED handle the region management (Fig.6)*/
   /* TODO retrive current vma if needed, current comment out due to compiler redundant warning*/
   /*Attempt to increate limit to get space */
-  // struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
+//   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
 
   int inc_sz = PAGING_PAGE_ALIGNSZ(size);
   int inc_limit_ret;
@@ -112,8 +112,9 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   if (inc_vma_limit(caller, vmaid, inc_sz, &inc_limit_ret) == -1)
       return -1;
 
+  rgnode = *(get_vm_area_node_at_brk(caller, vmaid, size, inc_sz));
   /* TODO: commit the limit increment */
-  get_free_vmrg_area(caller, vmaid, size, &rgnode);
+//  get_free_vmrg_area(caller, vmaid, size, &rgnode);
 
   caller->mm->symrgtbl[rgid].rg_start = rgnode.rg_start;
   caller->mm->symrgtbl[rgid].rg_end = rgnode.rg_end;
@@ -431,21 +432,21 @@ struct vm_rg_struct* get_vm_area_node_at_brk(struct pcb_t *caller, int vmaid, in
   */
 
   if (vmaid) {
-      if (cur_vma->sbrk - size < cur_vma->vm_end)
+      if (cur_vma->sbrk - alignedsz < cur_vma->vm_end)
           return NULL;
 
       newrg->rg_start = cur_vma->sbrk;
-      newrg->rg_end = newrg->rg_end - size;
+      newrg->rg_end = newrg->rg_end - alignedsz;
 
-      cur_vma->sbrk -= size;
+      cur_vma->sbrk -= alignedsz;
   } else {
-      if (cur_vma->sbrk + size > cur_vma->vm_end)
+      if (cur_vma->sbrk + alignedsz > cur_vma->vm_end)
           return NULL;
 
       newrg->rg_start = cur_vma->sbrk;
-      newrg->rg_end = newrg->rg_end + size;
+      newrg->rg_end = newrg->rg_end + alignedsz;
 
-      cur_vma->sbrk += size;
+      cur_vma->sbrk += alignedsz;
   }
   newrg->rg_next = NULL;
   return newrg;

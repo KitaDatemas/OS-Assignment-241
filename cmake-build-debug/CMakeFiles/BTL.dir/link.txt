@@ -1,0 +1,3 @@
+"D:\IDE Clion\CLion 2023.3.2\bin\cmake\win\x64\bin\cmake.exe" -E rm -f CMakeFiles\BTL.dir/objects.a
+"D:\IDE Clion\CLion 2023.3.2\bin\mingw\bin\ar.exe" qc CMakeFiles\BTL.dir/objects.a @CMakeFiles\BTL.dir\objects1.rsp
+"D:\IDE Clion\CLion 2023.3.2\bin\mingw\bin\gcc.exe" -g -Wl,--whole-archive CMakeFiles\BTL.dir/objects.a -Wl,--no-whole-archive -o BTL.exe -Wl,--out-implib,libBTL.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\BTL.dir\linkLibs.rsp
