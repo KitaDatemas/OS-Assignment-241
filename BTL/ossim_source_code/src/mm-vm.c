@@ -475,12 +475,9 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz, int* inc_limit_re
   // inc_limit_ret...
   if (vmaid == 0) {
     cur_vma->vm_end += inc_sz;
-    cur_vma->sbrk += inc_sz; 
-
   }
   else if (vmaid == 1) {
     cur_vma->vm_end -= inc_sz;
-    cur_vma->sbrk -= inc_sz;
   }
 
   *inc_limit_ret = cur_vma->vm_end;
