@@ -94,7 +94,7 @@ int vmap_page_range(struct pcb_t *caller, // process call
   struct framephy_struct *fpit = malloc(sizeof(struct framephy_struct));
   int  fpn;
   int pgit = 0;
-  int pgn = PAGING_PGN(addr);
+  int pgn = PAGING_PGN(addr);// dòng pte bắt đầu 
   // get the pos of next pte 
   uint32_t *pte= malloc(sizeof(uint32_t));
   if(!pte){
@@ -216,9 +216,9 @@ int alloc_pages_range(struct pcb_t *caller,
       if(!init_pte(pte,1, 0, 0, 1, 1, no_fpn_sw)==0){
           printf("can't change the pte from ram mode to ");
       }
-      mm->pgd[victim_page]=*pte;
-      
      __swap_cp_page(caller->mram, no_fpn_ram , caller->active_mswp, no_fpn_sw);
+     mm->pgd[victim_page]=*pte;
+      
        // swap the content of no_fpn_ram to no_fpn_sư
       // create the framestruct again with the fpn=no_fpn_ram 
      newfp_str= malloc(sizeof(struct framephy_struct));
@@ -232,6 +232,10 @@ int alloc_pages_range(struct pcb_t *caller,
      new_used_ls->owner = mm;
      new_used_ls->fp_next= caller->active_mswp->used_fp_list;
      caller->active_mswp->used_fp_list=new_used_ls;
+
+     if(pte){
+      free(pte);
+     }
     }else{
       if(MEMPHY_get_freefp(caller->mram, &fpn) <0 && 
         MEMPHY_get_freefp(caller->active_mswp, &fpn) <0 ) return -3000;
