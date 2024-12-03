@@ -12,7 +12,7 @@ void enqueue(struct queue_t * q, struct pcb_t * proc) {
     #ifdef MLQ_SCHED
         if (q == NULL ||
             proc->prio < 0 ||
-            proc->prio > 139)                           return;//Check for NULL Multilevel queue and the priority of process is invalid
+            proc->prio >= MAX_PRIO)                           return;//Check for NULL Multilevel queue and the priority of process is invalid
 
         if (q[proc->prio].size >= MAX_QUEUE_SIZE)       return;//Check if priority queue is full
 
