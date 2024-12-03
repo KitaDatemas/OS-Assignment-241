@@ -8,7 +8,7 @@
 
 struct queue_t {
 	struct pcb_t * proc[MAX_QUEUE_SIZE];
-	int slot = 0;//Initial slot value is set to 0
+	int slot;
 	int size;
 };
 
