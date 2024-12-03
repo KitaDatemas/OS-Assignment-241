@@ -1,69 +1,55 @@
+#include "queue.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "queue.h"
 
 int empty(struct queue_t * q) {
-        if (q == NULL) return 1;
-	return (q->size == 0);
+    if (q == NULL) return 1;
+    return (q->size == 0);
 }
 
 void enqueue(struct queue_t * q, struct pcb_t * proc) {
-    /* TODO: put a new process to queue [q] */
-    #ifdef MLQ_SCHED
-        if (q == NULL ||
-            proc->prio < 0 ||
-            proc->prio > 139)                           return;//Check for NULL Multilevel queue and the priority of process is invalid
+    if (q->size < MAX_QUEUE_SIZE) {
+        q->proc[q->size] = proc;
+        printf("Enqueuing process %d with priority %d. Queue size before: %d\n", proc->pid, proc->prio, q->size);
+        q->size++;
+        printf("Queue size after enqueue: %d\n", q->size);
+    } else {
+        printf("Queue is full, cannot enqueue process %d with priority %d.\n", proc->pid, proc->prio);
+    }
 
-        if (q[proc->prio].size >= MAX_QUEUE_SIZE)       return;//Check if priority queue is full
-
-        int idx = q[proc->prio].size++;
-        for (;
-             idx - 1 >= 0 && q[proc->prio].proc[idx - 1]->priority > proc->priority;
-             idx--)
-            q[proc->prio].proc[idx] = q[proc->prio].proc[idx - 1] ;//Add a new process at the end of the queue has the same priority value, then increase the size
-        q[proc->prio].proc[idx] = proc;
-    #else
-        if (q == NULL ||
-                q[0].size >= MAX_QUEUE_SIZE)        return;
-        int idx = q[0].size++;
-        for (; idx - 1 >= 0 && q[0].proc[idx - 1]->priority > proc->priority; idx--) {
-            q[0].proc[idx] = q[0].proc[idx - 1];
-        }
-        q[0].proc[idx] = proc;
-    #endif
+    // Debug: Print queue state after enqueue
+    printf("Queue state after enqueue: ");
+    for (int i = 0; i < q->size; i++) {
+        printf("(%d, %d) ", q->proc[i]->pid, q->proc[i]->prio);
+    }
+    printf("\n");
 }
 
 struct pcb_t * dequeue(struct queue_t * q) {
-    /* TODO: return a pcb whose prioprity is the highest
-     *  in the queue [q] and remember to remove it from q
-     * */
-    if (q == NULL)          return NULL;
-    struct pcb_t * proc = NULL;
+    if (empty(q)) {
+        printf("Queue is empty, cannot dequeue.\n");
+        return NULL;
+    }
 
-    #ifdef MLQ_SCHED
-        for (int level = 0; level < MAX_PRIO; level++) {
-            if (q[level].size == 0)         continue;//If queue at that level is empty, then move to next level immediately
-            //Else take the first process and move the rest processes of queue to the front by one index
-            proc = q[level].proc[0];
+    struct pcb_t * proc = q->proc[0];
+    printf("Dequeuing process %d with priority %d. Queue size before: %d\n", proc->pid, proc->prio, q->size);
 
-            for (int idx = 1; idx < q[level].size; idx++) {
-                q[level].proc[idx - 1] = q[level].proc[idx];
-                if (idx == q[level].size - 1)
-                    q[level].proc[idx] = NULL;
-            }
+    // Shift all elements to the left to maintain FIFO order
+    for (int i = 1; i < q->size; i++) {
+        q->proc[i - 1] = q->proc[i];
+    }
 
-            q[level].size--;
-            break;
-        }
-    #else
-        if (q[0].size == 0)  return NULL;
-        proc = q[0].proc[0];
-        q[0].proc[0] = NULL;
+    q->proc[q->size - 1] = NULL; // Clear the last slot
+    q->size--;
 
-        for (int idx = 1; idx < q[0].size; idx++)
-            q[0].proc[idx - 1] = q[0].proc[idx];
+    printf("Queue size after dequeue: %d\n", q->size);
 
-        q[0].size--;
-    #endif
-	return proc;
+    // Debug: Print queue state after dequeue
+    printf("Queue state after dequeue: ");
+    for (int i = 0; i < q->size; i++) {
+        printf("(%d, %d) ", q->proc[i]->pid, q->proc[i]->prio);
+    }
+    printf("\n");
+
+    return proc;
 }
