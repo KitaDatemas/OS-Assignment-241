@@ -38,7 +38,7 @@
 /* SWPOFF */
 #define PAGING_PTE_SWPOFF_LOBIT 5
 #define PAGING_PTE_SWPOFF_HIBIT 25
-
+// giống thầy miêu tả trong đề cương.
 /* PTE masks */
 #define PAGING_PTE_USRNUM_MASK GENMASK(PAGING_PTE_USRNUM_HIBIT,PAGING_PTE_USRNUM_LOBIT)
 #define PAGING_PTE_FPN_MASK    GENMASK(PAGING_PTE_FPN_HIBIT,PAGING_PTE_FPN_LOBIT)
@@ -54,15 +54,15 @@
 /* OFFSET */
 #define PAGING_ADDR_OFFST_LOBIT 0
 #define PAGING_ADDR_OFFST_HIBIT (NBITS(PAGING_PAGESZ) - 1)
-
+// 0-7
 /* PAGE Num */
 #define PAGING_ADDR_PGN_LOBIT NBITS(PAGING_PAGESZ)
 #define PAGING_ADDR_PGN_HIBIT (PAGING_CPU_BUS_WIDTH - 1)
-
+// 8-21
 /* Frame PHY Num */
 #define PAGING_ADDR_FPN_LOBIT NBITS(PAGING_PAGESZ)
 #define PAGING_ADDR_FPN_HIBIT (NBITS(PAGING_MEMRAMSZ) - 1)
-
+//8-9
 /* SWAPFPN */
 #define PAGING_SWP_LOBIT NBITS(PAGING_PAGESZ)
 #define PAGING_SWP_HIBIT (NBITS(PAGING_MEMSWPSZ) - 1)
@@ -91,12 +91,16 @@
 #define PAGING_PGN(x)  GETVAL(x,PAGING_PGN_MASK,PAGING_ADDR_PGN_LOBIT)
 /* Extract SWAPTYPE */
 #define PAGING_FPN(x)  GETVAL(x,PAGING_FPN_MASK,PAGING_ADDR_FPN_LOBIT)
+// use to lấy các giá trị nhất định của một số bit từ dãy bit .
 
 /* Memory range operator */
 /* TODO implement the INCLUDE checking mechanism - currently dummy op only */
-#define INCLUDE(x1,x2,y1,y2) (0)
+#define INCLUDE(x1,x2,y1,y2) ((x1<=y1)&& (y2<=x2) || (y1<=x1)&&(x2<=y2))
+// to check (y1, y2) belong to (x1,x2)
 /* TODO implement the OVERLAP checking mechanism - currently dummy op only */
-#define OVERLAP(x1,x2,y1,y2) ( 1)
+#define OVERLAP(x1,x2,y1,y2) (((x2>=x1)&&!((x2 < y1) || (y2 < x1)))/* stack */|| ((x2<x1)&& !((x2>y1)||(y2>x1)))/*heap*/)
+// to check (y1, y2) have the same some elements with (x1,x2)
+
 
 /* VM region prototypes */
 struct vm_rg_struct * init_vm_rg(int rg_start, int rg_endi, int vmaid);

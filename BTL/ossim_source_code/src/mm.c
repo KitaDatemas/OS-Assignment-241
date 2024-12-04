@@ -85,28 +85,66 @@ int vmap_page_range(struct pcb_t *caller, // process call
            struct framephy_struct *frames,// list of the mapped frames
               struct vm_rg_struct *ret_rg)// return mapped region, the real mapped fp
 {                                         // no guarantee all given pages are mapped
+  /*
+   cập nhật cho mỗi rg_end rg_start bằng addr bắt đầu, 
+   với mỗi page được thêm vào thì dời dời end lên 
+
+  */
   //uint32_t * pte = malloc(sizeof(uint32_t));
   struct framephy_struct *fpit = malloc(sizeof(struct framephy_struct));
-  //int  fpn;
+  int  fpn;
   int pgit = 0;
-  int pgn = PAGING_PGN(addr);
-
+  int pgn = PAGING_PGN(addr);// dòng pte bắt đầu 
+  // get the pos of next pte 
+  uint32_t *pte= malloc(sizeof(uint32_t));
+  if(!pte){
+    printf("Can't malloc pte");
+  }
+  // lấy giá trị của address của 
   /* TODO: update the rg_end and rg_start of ret_rg 
   //ret_rg->rg_end =  ....
   //ret_rg->rg_start = ...
   //ret_rg->vmaid = ...
-  */
-
+  */  
+  ret_rg->rg_start= addr;
+  ret_rg->rg_end=ret_rg->rg_start+ pgnum*PAGING_PAGESZ;
+  // vmaid ráng bằng gì :)))
+  //nó chỉ đã tạo ret_rg trước đó và có vmaid
   fpit->fp_next = frames;
 
   /* TODO map range of frame to address space 
    *      in page table pgd in caller->mm
    */
+  for(; pgit<pgnum; ++pgit){
+    if(!fpit){
+      printf("NO frame in %d ", pgit);
+    }
+    struct framephy_struct *temp= fpit;
+    fpit=fpit->fp_next;
+    int fpn= fpit->fpn;
+    // use this because the when fpit is the last the next is null it can made some problem
+    if(init_pte(pte, 1, fpn, 0,0,0,0)!=0){
+      printf("init_pte failed");
+    }
+    caller->mm->pgd[pgn+pgit]=*pte;
 
+    //update the rg_end  by increase page size
+    // printf("Mapped region [%ld->%ld] to frame %d with PTE: 0x%08x\n",
+    //            ret_rg->rg_start, ret_rg->rg_end, fpn, *pte); 
+    enlist_pgn_node(&caller->mm->fifo_pgn, pgn+pgit);
+
+    if(temp){
+      free(temp);// delete the fr because add 
+    }
+  }
    /* Tracking for later page replacement activities (if needed)
     * Enqueue new usage page */
-   enlist_pgn_node(&caller->mm->fifo_pgn, pgn+pgit);
 
+
+  // frame has been acllocated in the RAM
+  free(pte);
+
+  // add nó vào symrgtbl nếu có thể cái array ko biết add như nào ko thấy index:)
 
   return 0;
 }
@@ -118,12 +156,17 @@ int vmap_page_range(struct pcb_t *caller, // process call
  * @frm_lst   : frame list
  */
 
-int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struct** frm_lst)
+int alloc_pages_range(struct pcb_t *caller, 
+                      int req_pgnum, 
+                      struct framephy_struct** frm_lst)
+//xin địa chỉ trong ram của cho các frm nhớ  nếu địa chỉ trống không đủ thì swap ra ngoài  
 {
   int pgit, fpn;
-  //struct framephy_struct *newfp_str;
-
-
+  struct framephy_struct *newfp_str;
+  struct mm_struct* mm  = caller->mm;
+  if(!mm){
+    printf(" mm failed");
+  }
   /* TODO: allocate the page 
   //caller-> ...
   //frm_lst-> ...
@@ -132,11 +175,78 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
   {
     if(MEMPHY_get_freefp(caller->mram, &fpn) == 0)
    {
-     
-   } else {  // ERROR CODE of obtaining somes but not enough frames
+     newfp_str= malloc(sizeof(struct framephy_struct));
+     newfp_str->fpn= fpn;
+     newfp_str->owner=mm;
+     newfp_str->fp_next= *frm_lst;
+     *frm_lst=newfp_str;
+
+     // add fram into used frame list if we need we can you it , may be it is unused in this assignment
+     struct framephy_struct *new_used_ls= malloc(sizeof(struct framephy_struct));
+     new_used_ls->fpn = fpn;
+     new_used_ls->owner = mm;
+     new_used_ls->fp_next= caller->mram->used_fp_list;
+     caller->mram->used_fp_list= new_used_ls;
+
+   } else {  // ERROR CODE of obtaining somes but not enough frames 
+
+    if(MEMPHY_get_freefp(caller->active_mswp, &fpn) == 0)
+    {
+    // nếu không tìm được chỗ trống trong mram tìm page phải giải phòng một frame trong page và đổi chỗ với **mswp
+    // tìm chỗ trống trong active_swap nếu có thì hoán đổi ô nhớ trống.
+    // tìm pte của ô nhớ trong ram cần được thay
+    // thay pte tro tới vùng swap
+    // cập nhật frm_lst với fpn là fpn của ram
+    // Detail  change the data of the victime_page->fpn to the swap and add new data to this
+      int victim_page;
+      int no_fpn_sw= fpn;
+
+      if(find_victim_page(mm , &victim_page)<0){
+        printf("can't find victim page");
+      }
+      // change the pte of victim_page to swap
+      // find pte from victim page
+      uint32_t *pte= malloc(sizeof(uint32_t));
+      *pte= mm->pgd[victim_page];
+      int no_fpn_ram=PAGING_PTE_FPN(*pte);
+      // lấy fpn in ram to swap 
+
+      // after have the fpn in ram we  need to change the pte
+      // in swaptype= 1 => swap in swap 1 | in acitve swap
+      if(!init_pte(pte,1, 0, 0, 1, 1, no_fpn_sw)==0){
+          printf("can't change the pte from ram mode to ");
+      }
+     __swap_cp_page(caller->mram, no_fpn_ram , caller->active_mswp, no_fpn_sw);
+     mm->pgd[victim_page]=*pte;
+      
+       // swap the content of no_fpn_ram to no_fpn_sư
+      // create the framestruct again with the fpn=no_fpn_ram 
+     newfp_str= malloc(sizeof(struct framephy_struct));
+     newfp_str->fpn= no_fpn_ram;
+     newfp_str->owner=mm;
+     newfp_str->fp_next= *frm_lst;
+     *frm_lst=newfp_str;
+    //add a new list 
+     struct framephy_struct *new_used_ls= malloc(sizeof(struct framephy_struct));
+     new_used_ls->fpn = fpn;
+     new_used_ls->owner = mm;
+     new_used_ls->fp_next= caller->active_mswp->used_fp_list;
+     caller->active_mswp->used_fp_list=new_used_ls;
+
+     if(pte){
+      free(pte);
+     }
+    }else{
+      if(MEMPHY_get_freefp(caller->mram, &fpn) <0 && 
+        MEMPHY_get_freefp(caller->active_mswp, &fpn) <0 ) return -3000;
+      else return -1;
+      // return because there is no empty space in 
+      // can get freefp in the **swmem but in this assignment we only use one swap so just use active_mswp
+    }
+
    } 
  }
-
+  
   return 0;
 }
 
@@ -162,15 +272,16 @@ int vm_map_ram(struct pcb_t *caller, int astart, int aend, int mapstart, int inc
    *in endless procedure of swap-off to get frame and we have not provide 
    *duplicate control mechanism, keep it simple
    */
-  ret_alloc = alloc_pages_range(caller, incpgnum, &frm_lst);
 
+  ret_alloc = alloc_pages_range(caller, incpgnum, &frm_lst);
+  // alloc_pages_range to create frm_lst make it  in the ram 
   if (ret_alloc < 0 && ret_alloc != -3000)
     return -1;
 
   /* Out of memory */
   if (ret_alloc == -3000) 
   {
-#ifdef MMDBG
+#ifdef MMDBGxd
      printf("OOM: vm_map_ram out of memory \n");
 #endif
      return -1;
@@ -179,7 +290,6 @@ int vm_map_ram(struct pcb_t *caller, int astart, int aend, int mapstart, int inc
   /* it leaves the case of memory is enough but half in ram, half in swap
    * do the swaping all to swapper to get the all in ram */
   vmap_page_range(caller, mapstart, incpgnum, frm_lst, ret_rg);
-
   return 0;
 }
 
@@ -188,7 +298,7 @@ int vm_map_ram(struct pcb_t *caller, int astart, int aend, int mapstart, int inc
  * @srcfpn : source physical page number (FPN)
  * @mpdst  : destination memphy
  * @dstfpn : destination physical page number (FPN)
- **/
+ **/       
 int __swap_cp_page(struct memphy_struct *mpsrc, int srcfpn,
                 struct memphy_struct *mpdst, int dstfpn) 
 {
@@ -228,9 +338,20 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
   enlist_vm_rg_node(&vma0->vm_freerg_list, first_rg);
 
   /* TODO update VMA0 next */
-  // vma0->next = ...
+  vma0->vm_next= vma1;
+
+
 
   /* TODO: update one vma for HEAP */
+  vma1->vm_id=1;
+  vma1->vm_start= BIT(PAGING_CPU_BUS_WIDTH);
+  vma1->vm_end= vma1->vm_start;
+  vma1->sbrk = vma1->vm_start;
+
+  struct vm_rg_struct *first_rg = init_vm_rg(vma1->vm_start, vma1->vm_end, 0);
+  enlist_vm_rg_node(&vma1->vm_freerg_list, first_rg);
+
+  vma1->vm_next= NULL;
   // vma1->vm_id = ...
   // vma1->vm_start = ...
   // vma1->vm_end = ...
@@ -245,7 +366,7 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
 
   /* TODO: update mmap */
   //mm->mmap = ...
-
+  mm->mmap = vma0;
   return 0;
 }
 
