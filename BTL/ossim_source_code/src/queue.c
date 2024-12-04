@@ -12,9 +12,12 @@ void enqueue(struct queue_t * q, struct pcb_t * proc) {
     #ifdef MLQ_SCHED
         if (q == NULL ||
             proc->prio < 0 ||
-            proc->prio > 139)                           return;//Check for NULL Multilevel queue and the priority of process is invalid
+            proc->prio >= MAX_PRIO)                           return;//Check for NULL Multilevel queue and the priority of process is invalid
 
         if (q[proc->prio].size >= MAX_QUEUE_SIZE)       return;//Check if priority queue is full
+
+        // if (empty(q))
+        //     q.slot = MAX_PRIO - proc->prio;
 
         int idx = q[proc->prio].size++;
         for (;
@@ -42,9 +45,14 @@ struct pcb_t * dequeue(struct queue_t * q) {
 
     #ifdef MLQ_SCHED
         for (int level = 0; level < MAX_PRIO; level++) {
-            if (q[level].size == 0)         continue;//If queue at that level is empty, then move to next level immediately
-            //Else take the first process and move the rest processes of queue to the front by one index
+            /*
+            If queue at that level is empty or it's out of slot, then move to next level immediately
+            Else take the first process and move the rest processes of queue to the front by one index
+            */
+            if (q[level].size == 0 || q[level].slot == 0)         continue;
+            
             proc = q[level].proc[0];
+            q[level].slot--;
 
             for (int idx = 1; idx < q[level].size; idx++) {
                 q[level].proc[idx - 1] = q[level].proc[idx];
@@ -53,6 +61,11 @@ struct pcb_t * dequeue(struct queue_t * q) {
             }
 
             q[level].size--;
+
+            if (level == MAX_PRIO - 1) {
+                for (int queue_level = 0; queue_level < MAX_PRIO; queue_level++)
+                    q[queue_level].slot = MAX_PRIO - queue_level;
+            }
             break;
         }
     #else
