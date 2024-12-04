@@ -160,8 +160,18 @@ int MEMPHY_dump(struct memphy_struct * mp)
     /*TODO dump memphy contnt mp->storage 
      *     for tracing the memory content
      */
+   if(mp == NULL || mp->storage == NULL || mp->maxsz == 0){
+      printf("Invalid memory\n");
+      return -1;
+   }
 
-    return 0;
+   printf("-----------This is MEMPHY_dump-----------\n");
+   printf("    Address\t\tValue\n");
+   for(int i = 0; i < mp->maxsz; i++){
+   printf("%d: 0x%08lx\t\t0x%08x\n", i, (unsigned long int)(mp->storage + i), mp->storage[i]);
+   }
+
+   return 0;
 }
 
 int MEMPHY_put_freefp(struct memphy_struct *mp, int fpn)
