@@ -170,7 +170,7 @@ int MEMPHY_dump(struct memphy_struct * mp)
    for(int i = 0; i < mp->maxsz; i++){
    printf("%d: 0x%08lx\t\t0x%08x\n", i, (unsigned long int)(mp->storage + i), mp->storage[i]);
    }
-   sleep(0);
+   
    return 0;
 }
 
