@@ -113,7 +113,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   if (inc_vma_limit(caller, vmaid, inc_sz, &inc_limit_ret) == -1)
       return -1;
 
-  // rgnode = *(get_vm_area_node_at_brk(caller, vmaid, size, inc_sz));
+   rgnode = *(get_vm_area_node_at_brk(caller, vmaid, size, inc_sz));
   /* TODO: commit the limit increment */
 //  get_free_vmrg_area(caller, vmaid, size, &rgnode);
 

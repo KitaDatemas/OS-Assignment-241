@@ -148,7 +148,7 @@ int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_s
 int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz, int* inc_limit_ret);
 int find_victim_page(struct mm_struct* mm, int *pgn);
 struct vm_area_struct *get_vma_by_num(struct mm_struct *mm, int vmaid);
-
+struct vm_rg_struct* get_vm_area_node_at_brk(struct pcb_t *caller, int vmaid, int size, int alignedsz);
 /* MEM/PHY protypes */
 int MEMPHY_get_freefp(struct memphy_struct *mp, int *fpn);
 int MEMPHY_put_freefp(struct memphy_struct *mp, int fpn);
