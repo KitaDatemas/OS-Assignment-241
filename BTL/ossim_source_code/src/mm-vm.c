@@ -83,7 +83,6 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   struct vm_rg_struct rgnode;
 
   /* TODO: commit the vmaid */
-  // rgnode.vmaid
   rgnode.vmaid = vmaid;
 
   if (get_free_vmrg_area(caller, vmaid, size, &rgnode) == 0)
@@ -97,32 +96,34 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
 
     return 0;
   }
-
   /* TODO: get_free_vmrg_area FAILED handle the region management (Fig.6)*/
-
   /* TODO retrive current vma if needed, current comment out due to compiler redundant warning*/
   /*Attempt to increate limit to get space */
-  struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
+//   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
 
   int inc_sz = PAGING_PAGE_ALIGNSZ(size);
   int inc_limit_ret;
 
   /* TODO retrive old_sbrk if needed, current comment out due to compiler redundant warning*/
-  int old_sbrk = cur_vma->sbrk;
+//  int old_sbrk = cur_vma->sbrk;
 
   /* TODO INCREASE THE LIMIT
    * inc_vma_limit(caller, vmaid, inc_sz)
    */
-  if (inc_vma_limit(caller, vmaid, inc_sz, &inc_limit_ret) < 0)
-    return -1;
+  if (inc_vma_limit(caller, vmaid, inc_sz, &inc_limit_ret) == -1)
+      return -1;
 
+  // rgnode = *(get_vm_area_node_at_brk(caller, vmaid, size, inc_sz));
   /* TODO: commit the limit increment */
-  
+//  get_free_vmrg_area(caller, vmaid, size, &rgnode);
 
+  caller->mm->symrgtbl[rgid].rg_start = rgnode.rg_start;
+  caller->mm->symrgtbl[rgid].rg_end = rgnode.rg_end;
+  caller->mm->symrgtbl[rgid].vmaid = rgnode.vmaid;
   /* TODO: commit the allocation address 
   // *alloc_addr = ...
   */
-
+  *alloc_addr = rgnode.rg_start;
   return 0;
 }
 
@@ -208,31 +209,37 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
   if (!PAGING_PTE_PAGE_PRESENT(pte))
   { /* Page is not online, make it actively living */
     int vicpgn, swpfpn; 
-    //int vicfpn;
-    //uint32_t vicpte;
+    int vicfpn;
+    uint32_t vicpte;
 
     int tgtfpn = PAGING_PTE_SWP(pte);//the target frame storing our variable
 
     /* TODO: Play with your paging theory here */
     /* Find victim page */
     find_victim_page(caller->mm, &vicpgn);
+    if (vicpgn == -1)
+        return -1;
+    vicpte = mm->pgd[vicpgn];
+    vicfpn = PAGING_PTE_PGN(vicpte);
 
     /* Get free frame in MEMSWP */
     MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
+    if (swpfpn == -1)
+        return -1;
 
 
     /* Do swap frame from MEMRAM to MEMSWP and vice versa*/
     /* Copy victim frame to swap */
-    //__swap_cp_page();
+    __swap_cp_page(caller->mram, vicfpn, *(caller->mswp), swpfpn);
     /* Copy target frame from swap to mem */
-    //__swap_cp_page();
+    __swap_cp_page(*(caller->mswp), tgtfpn, caller->mram, vicfpn);
 
     /* Update page table */
-    //pte_set_swap() &mm->pgd;
+    pte_set_swap(&mm->pgd[vicpgn], 1, PAGING_OFFST(vicpgn));
 
     /* Update its online status of the target page */
-    //pte_set_fpn() & mm->pgd[pgn];
-    pte_set_fpn(&pte, tgtfpn);
+//    pte_set_fpn() & mm->pgd[pgn];
+    pte_set_fpn(&mm->pgd[pgn], tgtfpn);
 
     enlist_pgn_node(&caller->mm->fifo_pgn,pgn);
   }
@@ -415,16 +422,36 @@ int free_pcb_memph(struct pcb_t *caller)
 struct vm_rg_struct* get_vm_area_node_at_brk(struct pcb_t *caller, int vmaid, int size, int alignedsz)
 {
   struct vm_rg_struct * newrg;
+
   /* TODO retrive current vma to obtain newrg, current comment out due to compiler redundant warning*/
-  //struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
+  struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
+
+  if (cur_vma == NULL)
+      return NULL;
 
   newrg = malloc(sizeof(struct vm_rg_struct));
 
   /* TODO: update the newrg boundary
-  // newrg->rg_start = ...
-  // newrg->rg_end = ...
   */
 
+  if (vmaid) {
+      if (cur_vma->sbrk - alignedsz < cur_vma->vm_end)
+          return NULL;
+
+      newrg->rg_start = cur_vma->sbrk;
+      newrg->rg_end = newrg->rg_end - alignedsz;
+
+      cur_vma->sbrk -= alignedsz;
+  } else {
+      if (cur_vma->sbrk + alignedsz > cur_vma->vm_end)
+          return NULL;
+
+      newrg->rg_start = cur_vma->sbrk;
+      newrg->rg_end = newrg->rg_end + alignedsz;
+
+      cur_vma->sbrk += alignedsz;
+  }
+  newrg->rg_next = NULL;
   return newrg;
 }
 
@@ -497,11 +524,18 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz, int* inc_limit_re
  */
 int find_victim_page(struct mm_struct *mm, int *retpgn) 
 {
-  struct pgn_t *pg = mm->fifo_pgn;
+  struct pgn_t **pg = &(mm->fifo_pgn),
+                *deletePage;
 
   /* TODO: Implement the theorical mechanism to find the victim page */
+  if (*pg == NULL)      return -1;
+  while ((*pg)->pg_next != NULL) // Vì fifo_pgn là danh sách các trang đã được sử dụng, khi thêm 1 trang sử dụng mới sẽ được thêm vào đầu. Do đó cần chọn thằng lâu nhất được add vào
+      pg = &((*pg)->pg_next);
+  *retpgn = (*pg)->pgn;
+  deletePage = (*pg);
+  *pg = NULL;
 
-  free(pg);
+  free(deletePage);
 
   return 0;
 }
