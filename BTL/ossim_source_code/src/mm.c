@@ -21,7 +21,7 @@ int init_pte(uint32_t *pte,
 {
   if (pre != 0) {
     if (swp == 0) { // Non swap ~ page online
-      if (fpn == 0) 
+      if (fpn < 0) 
         return -1; // Invalid setting
 
       /* Valid setting with FPN */
@@ -143,7 +143,7 @@ int vmap_page_range(struct pcb_t *caller, // process call
 
   // frame has been acllocated in the RAM
   free(pte);
-
+  printf("complete map range");
   // add nó vào symrgtbl nếu có thể cái array ko biết add như nào ko thấy index:)
 
   return 0;
@@ -175,6 +175,7 @@ int alloc_pages_range(struct pcb_t *caller,
   {
     if(MEMPHY_get_freefp(caller->mram, &fpn) == 0)
    {
+     printf("%d",fpn);
      newfp_str= malloc(sizeof(struct framephy_struct));
      newfp_str->fpn= fpn;
      newfp_str->owner=mm;
@@ -213,7 +214,7 @@ int alloc_pages_range(struct pcb_t *caller,
 
       // after have the fpn in ram we  need to change the pte
       // in swaptype= 1 => swap in swap 1 | in acitve swap
-      if(!init_pte(pte,1, 0, 0, 1, 1, no_fpn_sw)==0){
+      if(init_pte(pte,1, -1, 0, 1, 1, no_fpn_sw)!=0){
           printf("can't change the pte from ram mode to ");
       }
      __swap_cp_page(caller->mram, no_fpn_ram , caller->active_mswp, no_fpn_sw);
