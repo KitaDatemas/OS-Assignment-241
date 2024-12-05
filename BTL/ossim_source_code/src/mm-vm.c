@@ -111,7 +111,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
    * inc_vma_limit(caller, vmaid, inc_sz)
    */
   printf("alloc\n");
-  if (inc_vma_limit(caller, vmaid, inc_sz, &inc_limit_ret) == -1)
+  if (inc_vma_limit(caller, vmaid, inc_sz, &inc_limit_ret) == -1) //BUG
       return -1;
   printf("alloc\n");
    rgnode = *(get_vm_area_node_at_brk(caller, vmaid, size, inc_sz));
@@ -513,12 +513,29 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz, int* inc_limit_re
   /* TODO: Obtain the new vm area based on vmaid */
   //cur_vma->vm_end... 
   // inc_limit_ret...
-  if (vmaid == 0) {
-    cur_vma->vm_end += inc_sz;
+#ifdef MM_PAGING_HEAP_GODOWN
+  if (vmaid == 1) {
+    cur_vma->sbrk -= inc_sz;
+    if (cur_vma->sbrk < cur_vma->vm_end)
+      cur_vma->vm_end -= inc_amt;
   }
-  else if (vmaid == 1) {
-    cur_vma->vm_end -= inc_sz;
+  else if (vmaid == 0) {
+    cur_vma->sbrk += inc_sz;
+    if (cur_vma->sbrk > cur_vma->vm_end)
+      cur_vma->vm_end += inc_amt;
   }
+#else
+  if (vmaid == 1) {
+    cur_vma->sbrk += inc_sz;
+    if (cur_vma->sbrk > cur_vma->vm_end)
+      cur_vma->vm_end += inc_amt;
+  }
+  else if (vmaid == 0) {
+    cur_vma->sbrk -= inc_sz;
+    if (cur_vma->sbrk < cur_vma->vm_end)
+      cur_vma->vm_end -= inc_amt;
+  }
+#endif
 
   *inc_limit_ret = cur_vma->vm_end;
 
