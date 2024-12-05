@@ -83,7 +83,7 @@ int MEMPHY_seq_write(struct memphy_struct * mp, int addr, BYTE value)
 
    MEMPHY_mv_csr(mp, addr);
    mp->storage[addr] = value;
-
+   
    return 0;
 }
 
