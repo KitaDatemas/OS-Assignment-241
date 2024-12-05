@@ -331,6 +331,7 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
   mm->pgd = malloc(PAGING_MAX_PGN*sizeof(uint32_t));
 
   /* By default the owner comes with at least one vma for DATA */
+  #ifdef MM_PAGING_HEAP_GODOWN
   vma0->vm_id = 0;
   vma0->vm_start = 0;
   vma0->vm_end = vma0->vm_start;
@@ -340,19 +341,15 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
 
   /* TODO update VMA0 next */
   vma0->vm_next= vma1;
-
-
-
   /* TODO: update one vma for HEAP */
   vma1->vm_id=1;
   vma1->vm_start= BIT(PAGING_CPU_BUS_WIDTH);
   vma1->vm_end= vma1->vm_start;
   vma1->sbrk = vma1->vm_start;
-
   struct vm_rg_struct *first_rg_vma_1 = init_vm_rg(vma1->vm_start, vma1->vm_end, 0);
   enlist_vm_rg_node(&vma1->vm_freerg_list, first_rg_vma_1);
-
   vma1->vm_next= NULL;
+
   // vma1->vm_id = ...
   // vma1->vm_start = ...
   // vma1->vm_end = ...
@@ -360,7 +357,6 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
   // enlist_vm_rg_node(&vma1...)
   // vma1->vm_next
   // enlist_vm_rg_node(&vma1->vm_freerg_list,...)
-
   /* Point vma owner backward */
   vma0->vm_mm = mm; 
   vma1->vm_mm = mm;
@@ -368,6 +364,41 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
   /* TODO: update mmap */
   //mm->mmap = ...
   mm->mmap = vma0;
+#else
+  vma0->vm_id = 0;
+  vma0->vm_start = BIT(PAGING_CPU_BUS_WIDTH);
+  vma0->vm_end = vma0->vm_start;
+  vma0->sbrk = vma0->vm_start;
+  struct vm_rg_struct *first_rg = init_vm_rg(vma0->vm_start, vma0->vm_end, 0);
+  enlist_vm_rg_node(&vma0->vm_freerg_list, first_rg);
+
+  /* TODO update VMA0 next */
+  vma0->vm_next= vma1;
+  /* TODO: update one vma for HEAP */
+  vma1->vm_id=1;
+  vma1->vm_start=0 ;
+  vma1->vm_end= vma1->vm_start;
+  vma1->sbrk = vma1->vm_start;
+  struct vm_rg_struct *first_rg_vma_1 = init_vm_rg(vma1->vm_start, vma1->vm_end, 0);
+  enlist_vm_rg_node(&vma1->vm_freerg_list, first_rg_vma_1);
+  vma1->vm_next= NULL;
+
+  // vma1->vm_id = ...
+  // vma1->vm_start = ...
+  // vma1->vm_end = ...
+  // vma1->sbrk = ...
+  // enlist_vm_rg_node(&vma1...)
+  // vma1->vm_next
+  // enlist_vm_rg_node(&vma1->vm_freerg_list,...)
+  /* Point vma owner backward */
+  vma0->vm_mm = mm; 
+  vma1->vm_mm = mm;
+
+  /* TODO: update mmap */
+  //mm->mmap = ...
+  mm->mmap = vma0;
+#endif
+
   return 0;
 }
 
