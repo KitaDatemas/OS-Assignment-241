@@ -10,16 +10,16 @@ int empty(struct queue_t * q) {
 void enqueue(struct queue_t * q, struct pcb_t * proc) {
     /* TODO: put a new process to queue [q] */
 
-        if (q == NULL)  return;//Check for NULL Multilevel queue and the priority of process is invalid
- 
-        if (q->size >= MAX_QUEUE_SIZE)  return;//Check if priority queue is full
+    if (q == NULL)  return;//Check for NULL Multilevel queue and the priority of process is invalid
 
-        int idx = q->size++;
-        for (;
-             idx - 1 >= 0 && q->proc[idx - 1]->priority > proc->priority;
-             idx--)
-            q->proc[idx] = q->proc[idx - 1] ;//Add a new process at the end of the queue has the same priority value, then increase the size
-        q->proc[idx] = proc;
+    if (q->size >= MAX_QUEUE_SIZE)  return;//Check if priority queue is full
+
+    int idx = q->size++;
+    for (;
+            idx - 1 >= 0 && q->proc[idx - 1]->priority > proc->priority;
+            idx--)
+        q->proc[idx] = q->proc[idx - 1] ;//Add a new process at the end of the queue has the same priority value, then increase the size
+    q->proc[idx] = proc;
 }
 
 struct pcb_t * dequeue(struct queue_t * q) {
