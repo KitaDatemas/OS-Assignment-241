@@ -190,11 +190,22 @@ int alloc_pages_range(struct pcb_t *caller,
     if(MEMPHY_get_freefp(caller->mram, &fpn) == 0)
    {
      printf("%d",fpn);
-     newfp_str= malloc(sizeof(struct framephy_struct));
-     newfp_str->fpn= fpn;
-     newfp_str->owner=mm;
-     newfp_str->fp_next= *frm_lst;
-     *frm_lst=newfp_str;
+    newfp_str= malloc(sizeof(struct framephy_struct));
+    newfp_str->fpn = fpn;
+    newfp_str->owner = mm;
+    newfp_str->fp_next = NULL;
+
+    // If frm_lst is empty, the new frame becomes the head
+    if (*frm_lst == NULL) {
+        *frm_lst = newfp_str;
+    } else {
+        // Otherwise, traverse to the last element and add the new frame to the tail
+        struct framephy_struct* temp = *frm_lst;
+        while (temp->fp_next != NULL) {
+            temp = temp->fp_next;
+        }
+        temp->fp_next = newfp_str;
+    }
 
      // add fram into used frame list if we need we can you it , may be it is unused in this assignment
      struct framephy_struct *new_used_ls= malloc(sizeof(struct framephy_struct));
@@ -236,11 +247,22 @@ int alloc_pages_range(struct pcb_t *caller,
       
        // swap the content of no_fpn_ram to no_fpn_sư
       // create the framestruct again with the fpn=no_fpn_ram 
-     newfp_str= malloc(sizeof(struct framephy_struct));
-     newfp_str->fpn= no_fpn_ram;
-     newfp_str->owner=mm;
-     newfp_str->fp_next= *frm_lst;
-     *frm_lst=newfp_str;
+    newfp_str= malloc(sizeof(struct framephy_struct));
+    newfp_str->fpn = fpn;
+    newfp_str->owner = mm;
+    newfp_str->fp_next = NULL;
+
+    // If frm_lst is empty, the new frame becomes the head
+    if (*frm_lst == NULL) {
+        *frm_lst = newfp_str;
+    } else {
+        // Otherwise, traverse to the last element and add the new frame to the tail
+        struct framephy_struct* temp = *frm_lst;
+        while (temp->fp_next != NULL) {
+            temp = temp->fp_next;
+        }
+        temp->fp_next = newfp_str;
+    }
     //add a new list 
      struct framephy_struct *new_used_ls= malloc(sizeof(struct framephy_struct));
      new_used_ls->fpn = fpn;
