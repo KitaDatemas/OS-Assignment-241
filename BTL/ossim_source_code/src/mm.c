@@ -83,7 +83,10 @@ int vmap_page_range(struct pcb_t *caller, // process call
                                 int addr, // start address which is aligned to pagesz
                                int pgnum, // num of mapping page
            struct framephy_struct *frames,// list of the mapped frames
-              struct vm_rg_struct *ret_rg)// return mapped region, the real mapped fp
+              struct vm_rg_struct *ret_rg,// return mapped region, the real mapped fp
+                                int vmaid,
+                      unsigned long astart, 
+                      unsigned long aend )
 {                                         // no guarantee all given pages are mapped
   /*
    cập nhật cho mỗi rg_end rg_start bằng addr bắt đầu, 
@@ -93,8 +96,9 @@ int vmap_page_range(struct pcb_t *caller, // process call
   //uint32_t * pte = malloc(sizeof(uint32_t));
   struct framephy_struct *fpit = malloc(sizeof(struct framephy_struct));
   int  fpn;
+  int incr_descr;// to check it the 
   int pgit = 0;
-  int pgn = PAGING_PGN(addr);// dòng pte bắt đầu 
+  int pgn = PAGING_PGN(astart);// dòng pte bắt đầu 
   // get the pos of next pte 
   uint32_t *pte= malloc(sizeof(uint32_t));
   if(!pte){
@@ -106,15 +110,21 @@ int vmap_page_range(struct pcb_t *caller, // process call
   //ret_rg->rg_start = ...
   //ret_rg->vmaid = ...
   */  
-  ret_rg->rg_start= addr;
-  ret_rg->rg_end=ret_rg->rg_start+ pgnum*PAGING_PAGESZ;
-  // vmaid ráng bằng gì :)))
+  ret_rg->rg_start= astart;
+  ret_rg->rg_end=aend;
+  ret_rg->vmaid = vmaid;
   //nó chỉ đã tạo ret_rg trước đó và có vmaid
   fpit->fp_next = frames;
 
   /* TODO map range of frame to address space 
    *      in page table pgd in caller->mm
    */
+  
+  if(astart>= aend){
+    incr_descr=-1;
+  }else{
+    incr_descr=1;
+  }
   for(; pgit<pgnum; ++pgit){
     if(!fpit){
       printf("NO frame in %d ", pgit);
@@ -126,7 +136,7 @@ int vmap_page_range(struct pcb_t *caller, // process call
     if(init_pte(pte, 1, fpn, 0,0,0,0)!=0){
       printf("init_pte failed");
     }
-    caller->mm->pgd[pgn+pgit]=*pte;
+    caller->mm->pgd[pgn+ incr_descr*pgit ]=*pte;
 
     //update the rg_end  by increase page size
     // printf("Mapped region [%ld->%ld] to frame %d with PTE: 0x%08x\n",
@@ -261,7 +271,7 @@ int alloc_pages_range(struct pcb_t *caller,
  * @incpgnum  : number of mapped page
  * @ret_rg    : returned region
  */
-int vm_map_ram(struct pcb_t *caller, int astart, int aend, int mapstart, int incpgnum, struct vm_rg_struct *ret_rg)
+int vm_map_ram(struct pcb_t *caller, unsigned long astart, unsigned long aend, int mapstart, int incpgnum, struct vm_rg_struct *ret_rg, int vmaid)
 {
   struct framephy_struct *frm_lst = NULL;
   int ret_alloc;
@@ -290,7 +300,7 @@ int vm_map_ram(struct pcb_t *caller, int astart, int aend, int mapstart, int inc
 
   /* it leaves the case of memory is enough but half in ram, half in swap
    * do the swaping all to swapper to get the all in ram */
-  vmap_page_range(caller, mapstart, incpgnum, frm_lst, ret_rg);
+  vmap_page_range(caller, mapstart, incpgnum, frm_lst, ret_rg,vmaid,astart, aend);
   return 0;
 }
 
