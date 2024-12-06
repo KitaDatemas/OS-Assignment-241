@@ -133,7 +133,9 @@ static void * ld_routine(void * args) {
 #endif
 		printf("\tLoaded a process at %s, PID: %d PRIO: %ld\n",
 			ld_processes.path[i], proc->pid, ld_processes.prio[i]);
+		printf("ld_routine_os.c1\n");
 		add_proc(proc);
+		printf("ld_routine_os.c2\n");
 		free(ld_processes.path[i]);
 		i++;
 		next_slot(timer_id);

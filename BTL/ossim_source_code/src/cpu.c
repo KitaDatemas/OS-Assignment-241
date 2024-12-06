@@ -4,10 +4,12 @@
 #include "mm.h"
 
 int calc(struct pcb_t * proc) {
+	printf("calc\n");
 	return ((unsigned long)proc & 0UL);
 }
 
 int alloc(struct pcb_t * proc, uint32_t size, uint32_t reg_index) {
+	printf("alloc_proc\n");
 	addr_t addr = alloc_mem(size, proc);
 	if (addr == 0) {
 		return 1;
@@ -18,6 +20,7 @@ int alloc(struct pcb_t * proc, uint32_t size, uint32_t reg_index) {
 }
 
 int free_data(struct pcb_t * proc, uint32_t reg_index) {
+	printf("free_data");
 	return free_mem(proc->regs[reg_index], proc);
 }
 
@@ -26,7 +29,7 @@ int read(
 		uint32_t source, // Index of source register
 		uint32_t offset, // Source address = [source] + [offset]
 		uint32_t destination) { // Index of destination register
-	
+	printf("read\n");
 	BYTE data;
 	if (read_mem(proc->regs[source] + offset, proc,	&data)) {
 		proc->regs[destination] = data;
@@ -42,6 +45,7 @@ int write(
 		uint32_t destination, // Index of destination register
 		uint32_t offset) { 	// Destination address =
 					// [destination] + [offset]
+	printf("write\n");
 	return write_mem(proc->regs[destination] + offset, proc, data);
 } 
 

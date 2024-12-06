@@ -166,12 +166,14 @@ int MEMPHY_dump(struct memphy_struct * mp)
       return -1;
    }
 
-   printf("-----------This is MEMPHY_dump-----------\n");
+   printf("\n-----------This is MEMPHY_dump-----------\n");
    printf("    Address\t\tValue\n");
    for(int i = 0; i < mp->maxsz; i++){
-   printf("%d: 0x%08lx\t\t0x%08x\n", i, (unsigned long int)(mp->storage + i), mp->storage[i]);
+      if(mp->storage[i] != 0){
+        printf("%d: 0x%08lx\t\t0x%08x\n", i, (unsigned long int)(mp->storage + i), mp->storage[i]);
+      }
    }
-   
+   printf("-----------End of MEMPHY_dump-----------\n\n");
    return 0;
 }
 

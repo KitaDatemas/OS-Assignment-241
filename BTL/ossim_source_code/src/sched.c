@@ -62,6 +62,10 @@ void put_mlq_proc(struct pcb_t * proc) {
 }
 
 void add_mlq_proc(struct pcb_t * proc) {
+	if(proc->prio < 0 
+	|| proc->prio >= MAX_PRIO 
+	|| proc->priority < 0 
+	) return;
 	pthread_mutex_lock(&queue_lock);
 	enqueue(&mlq_ready_queue[proc->prio], proc);
 	pthread_mutex_unlock(&queue_lock);	
@@ -76,6 +80,7 @@ void put_proc(struct pcb_t * proc) {
 }
 
 void add_proc(struct pcb_t * proc) {
+	printf("add_proc\n");
 	return add_mlq_proc(proc);
 }
 #else
