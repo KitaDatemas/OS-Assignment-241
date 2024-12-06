@@ -453,6 +453,9 @@ struct vm_rg_struct* get_vm_area_node_at_brk(struct pcb_t *caller, int vmaid, in
       newrg->rg_start = cur_vma->sbrk;
       newrg->rg_end = cur_vma->sbrk + alignedsz;
 
+      printf("newrg->rg start: %ld\n", newrg->rg_start);
+      printf("newrg->rg end: %ld\n", newrg->rg_end);
+
       cur_vma->sbrk += alignedsz;
   }
   newrg->rg_next = NULL;
