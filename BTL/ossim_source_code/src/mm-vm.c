@@ -540,8 +540,12 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz, int* inc_limit_re
   *inc_limit_ret = cur_vma->vm_end;
 
   if (vm_map_ram(caller, area->rg_start, area->rg_end, 
-                    old_end, incnumpage , newrg, vmaid) < 0)
+                    old_end, incnumpage , newrg, vmaid) < 0) {
+    free(area);
     return -1; /* Map the memory to MEMRAM */
+  }
+  free(area);
+  enlist_vm_freerg_list(caller->mm, *newrg);
 
   return 0;
 
