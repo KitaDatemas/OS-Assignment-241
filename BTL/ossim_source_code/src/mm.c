@@ -95,7 +95,7 @@ int vmap_page_range(struct pcb_t *caller, // process call
   */
   //uint32_t * pte = malloc(sizeof(uint32_t));
   struct framephy_struct *fpit = malloc(sizeof(struct framephy_struct));
-  int  fpn;
+  int fpn;
   int incr_descr;// to check it the 
   int pgit = 0;
   int pgn = PAGING_PGN(addr);// dòng pte bắt đầu 
@@ -110,8 +110,8 @@ int vmap_page_range(struct pcb_t *caller, // process call
   //ret_rg->rg_start = ...
   //ret_rg->vmaid = ...
   */  
-  ret_rg->rg_start= astart;
-  ret_rg->rg_end=aend;
+  ret_rg->rg_start = addr;
+  ret_rg->rg_end = addr +PAGING_PAGESZ*pgnum;
   ret_rg->vmaid = vmaid;
   //nó chỉ đã tạo ret_rg trước đó và có vmaid
   fpit->fp_next = frames;
@@ -130,8 +130,8 @@ int vmap_page_range(struct pcb_t *caller, // process call
       printf("NO frame in %d ", pgit);
     }
     struct framephy_struct *temp= fpit;
-    fpit=fpit->fp_next;
-    int fpn= fpit->fpn;
+    fpit = fpit->fp_next;
+    fpn = fpit->fpn;
     // use this because the when fpit is the last the next is null it can made some problem
     if(init_pte(pte, 1, fpn, 0,0,0,0)!=0){
       printf("init_pte failed");
