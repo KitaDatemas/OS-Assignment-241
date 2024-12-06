@@ -98,7 +98,7 @@ int vmap_page_range(struct pcb_t *caller, // process call
   int  fpn;
   int incr_descr;// to check it the 
   int pgit = 0;
-  int pgn = PAGING_PGN(astart);// dòng pte bắt đầu 
+  int pgn = PAGING_PGN(addr);// dòng pte bắt đầu 
   // get the pos of next pte 
   uint32_t *pte= malloc(sizeof(uint32_t));
   if(!pte){
