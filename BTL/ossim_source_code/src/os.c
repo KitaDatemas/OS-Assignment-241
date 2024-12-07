@@ -112,7 +112,6 @@ static void * ld_routine(void * args) {
 	struct timer_id_t * timer_id = (struct timer_id_t*)args;
 #endif
 	int i = 0;
-	printf("ld_routine\n");
 	while (i < num_processes) {
 		struct pcb_t * proc = load(ld_processes.path[i]);
 #ifdef MLQ_SCHED
@@ -133,9 +132,7 @@ static void * ld_routine(void * args) {
 #endif
 		printf("\tLoaded a process at %s, PID: %d PRIO: %ld\n",
 			ld_processes.path[i], proc->pid, ld_processes.prio[i]);
-		printf("ld_routine_os.c1\n");
 		add_proc(proc);
-		printf("ld_routine_os.c2\n");
 		free(ld_processes.path[i]);
 		i++;
 		next_slot(timer_id);

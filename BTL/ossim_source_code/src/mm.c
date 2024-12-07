@@ -125,23 +125,20 @@ int vmap_page_range(struct pcb_t *caller, // process call
   }else{
     incr_descr=1;
   }
-  printf("%d\n",pgnum);
+  printf("start page addr: %d\n", pgn);
   for(pgit=0; pgit<pgnum; pgit++){
     if(!fpit){
-      printf("NO frame in %d ", pgit);
+      printf("NO frame in %d\n", pgit);
     }
     struct framephy_struct *temp= fpit;
     fpit = fpit->fp_next;
     fpn = fpit->fpn;
-    printf("Frame %d \n", fpn);
+    printf("Frame: %d\n", fpn);
     // use this because the when fpit is the last the next is null it can made some problem
     if(init_pte(pte, 1, fpn, 0,0,0,0)!=0){
-      printf("init_pte failed");
+      printf("init_pte failed\n");
     }
     caller->mm->pgd[pgn+ incr_descr*pgit ]=*pte;
-    printf("%d\n", pgn);
-    printf("%d\n", pgit);
-    printf("pte: %p\n", caller->mm->pgd[pgn+ incr_descr*pgit ]);
     //update the rg_end  by increase page size
     // printf("Mapped region [%ld->%ld] to frame %d with PTE: 0x%08x\n",
     //            ret_rg->rg_start, ret_rg->rg_end, fpn, *pte); 
@@ -157,7 +154,6 @@ int vmap_page_range(struct pcb_t *caller, // process call
 
   // frame has been acllocated in the RAM
   free(pte);
-  printf("complete map range");
   // add nó vào symrgtbl nếu có thể cái array ko biết add như nào ko thấy index:)
 
   return 0;
@@ -189,7 +185,7 @@ int alloc_pages_range(struct pcb_t *caller,
   {
     if(MEMPHY_get_freefp(caller->mram, &fpn) == 0)
    {
-     printf("%d",fpn);
+    printf("Frame: %d\n",fpn);
     newfp_str= malloc(sizeof(struct framephy_struct));
     newfp_str->fpn = fpn;
     newfp_str->owner = mm;
@@ -311,8 +307,6 @@ int vm_map_ram(struct pcb_t *caller, unsigned long astart, unsigned long aend, i
    */
 
   ret_alloc = alloc_pages_range(caller, incpgnum, &frm_lst);
-  printf("ret_alloc: %d\n", ret_alloc);
-  printf("icpnum: %d\n", incpgnum);
   // alloc_pages_range to create frm_lst make it  in the ram 
   if (ret_alloc < 0 && ret_alloc != -3000)
     return -1;

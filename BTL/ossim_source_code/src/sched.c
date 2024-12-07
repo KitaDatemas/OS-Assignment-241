@@ -80,7 +80,6 @@ void put_proc(struct pcb_t * proc) {
 }
 
 void add_proc(struct pcb_t * proc) {
-	printf("add_proc\n");
 	return add_mlq_proc(proc);
 }
 #else
