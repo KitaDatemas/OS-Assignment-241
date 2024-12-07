@@ -98,6 +98,7 @@ int vmap_page_range(struct pcb_t *caller, // process call
   int fpn;
   int incr_descr;// to check it the 
   int pgit = 0;
+  printf("Old end: %ld\n", addr);
   int pgn = PAGING_PGN(addr);// dòng pte bắt đầu 
   // get the pos of next pte 
   uint32_t *pte= malloc(sizeof(uint32_t));
@@ -111,7 +112,7 @@ int vmap_page_range(struct pcb_t *caller, // process call
   //ret_rg->vmaid = ...
   */  
   ret_rg->rg_start = addr;
-  ret_rg->rg_end = addr +PAGING_PAGESZ*pgnum;
+  ret_rg->rg_end = addr + PAGING_PAGESZ*pgnum;
   ret_rg->vmaid = vmaid;
   //nó chỉ đã tạo ret_rg trước đó và có vmaid
   fpit->fp_next = frames;
@@ -138,7 +139,8 @@ int vmap_page_range(struct pcb_t *caller, // process call
     if(init_pte(pte, 1, fpn, 0,0,0,0)!=0){
       printf("init_pte failed\n");
     }
-    caller->mm->pgd[pgn+ incr_descr*pgit ]=*pte;
+    caller->mm->pgd[pgn+ incr_descr*pgit] = *pte;
+    printf("pte: %p\n", caller->mm->pgd[pgn+ incr_descr*pgit]);
     //update the rg_end  by increase page size
     // printf("Mapped region [%ld->%ld] to frame %d with PTE: 0x%08x\n",
     //            ret_rg->rg_start, ret_rg->rg_end, fpn, *pte); 
@@ -375,7 +377,7 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
   vma0->vm_next= vma1;
   /* TODO: update one vma for HEAP */
   vma1->vm_id=1;
-  vma1->vm_start= BIT(PAGING_CPU_BUS_WIDTH);
+  vma1->vm_start= caller->vmemsz;
   vma1->vm_end= vma1->vm_start;
   vma1->sbrk = vma1->vm_start;
   struct vm_rg_struct *first_rg_vma_1 = init_vm_rg(vma1->vm_start, vma1->vm_end, 0);

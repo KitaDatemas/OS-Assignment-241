@@ -81,7 +81,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
 {
   /*Allocate at the toproof */
   struct vm_rg_struct rgnode;
-
+  printf("rgid inside __alloc: %d\n", rgid);
   /* TODO: commit the vmaid */
   rgnode.vmaid = vmaid;
 
@@ -113,15 +113,14 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   if (inc_vma_limit(caller, vmaid, size, &inc_limit_ret) == -1) {
     return -1;
   }
-  printf("alloc\n");
-  //  rgnode = *(get_vm_area_node_at_brk(caller, vmaid, size, inc_sz));
+  printf("\n");
   /* TODO: commit the limit increment */
   get_free_vmrg_area(caller, vmaid, size, &rgnode);
 
   caller->mm->symrgtbl[rgid].rg_start = rgnode.rg_start;
   caller->mm->symrgtbl[rgid].rg_end = rgnode.rg_end;
   caller->mm->symrgtbl[rgid].vmaid = rgnode.vmaid;
-  printf("alloc \n");
+  
   /* TODO: commit the allocation address 
   // *alloc_addr = ...
   */
@@ -150,8 +149,7 @@ int __free(struct pcb_t *caller, int rgid)
     return -1;
 
   /* TODO: Manage the collect freed region to freerg_list */
-  if (get_symrg_byid(caller->mm, rgid) == NULL)
-    return -1;
+  if (get_symrg_byid(caller->mm, rgid) == NULL) return -1;
   rgnode = *get_symrg_byid(caller->mm, rgid);
 
   /*enlist the obsoleted memory region */
@@ -506,22 +504,20 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz, int* inc_limit_re
 #ifdef MM_PAGING_HEAP_GODOWN
   if (vmaid == 1) {
     if (area->rg_end < cur_vma->vm_end)//Tang kich thuoc vma neu viec cap phat reg hop le
-      cur_vma->vm_end = area->rg_end;
+      cur_vma->vm_end -= inc_amt;
   }
   else if (vmaid == 0) {
     if (area->rg_end > cur_vma->vm_end)
-      cur_vma->vm_end = area->rg_end;
+      cur_vma->vm_end += inc_amt;
   }
 #else
   if (vmaid == 1) {
-    // cur_vma->sbrk += inc_sz;
     if (area->rg_end > cur_vma->vm_end)
-      cur_vma->vm_end = area->rg_end;
+      cur_vma->vm_end += inc_amt;
   }
   else if (vmaid == 0) {
-    // cur_vma->sbrk -= inc_sz;
-    if (area->rg_end < cur_vma->vm_end)
-      cur_vma->vm_end = area->rg_end;
+    if (area->rg_end > cur_vma->vm_end)
+      cur_vma->vm_end += inc_amt;
   }
 #endif
 
