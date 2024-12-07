@@ -369,7 +369,7 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
   mm->pgd = malloc(PAGING_MAX_PGN*sizeof(uint32_t));
 
   /* By default the owner comes with at least one vma for DATA */
-  #ifdef MM_PAGING_HEAP_GODOWN
+#ifdef MM_PAGING_HEAP_GODOWN
   vma0->vm_id = 0;
   vma0->vm_start = 0;
   vma0->vm_end = vma0->vm_start;
