@@ -542,16 +542,29 @@ int print_pgtbl(struct pcb_t *caller, uint32_t start, uint32_t end)
   pgn_start = PAGING_PGN(start);
   pgn_end = PAGING_PGN(end);
 
-  printf("print_pgtbl: %d - %d", start, end);
+  printf("print_pgtbl DATA: %d - %d", start, end);
   if (caller == NULL) {printf("NULL caller\n"); return -1;}
     printf("\n");
-
 
   for(pgit = pgn_start; pgit < pgn_end; pgit++)
   {
      printf("%08ld: %08x\n", pgit * sizeof(uint32_t), caller->mm->pgd[pgit]);
   }
 
+  if(end == -1){
+    
+    struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, 1);
+    end = cur_vma->vm_end;
+  }
+  pgn_start= PAGING_PGN(caller->vmemsz);
+  pgn_end = pgn_start - 5;
+  printf("print_pgtbl HEAP: %d - %d", start, end);
+  if (caller == NULL) {printf("NULL caller\n"); return -1;}
+    printf("\n");
+
+  for(pgit=pgn_start; pgit> pgn_end; pgit--){
+    printf("%08ld: %08x\n", pgit * sizeof(uint32_t), caller->mm->pgd[pgit]);
+  }
   return 0;
 }
 
