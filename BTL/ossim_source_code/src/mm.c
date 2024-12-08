@@ -98,8 +98,6 @@ int vmap_page_range(struct pcb_t *caller, // process call
   int fpn;
   int incr_descr;// to check it the 
   int pgit = 0;
-  //printf("Old end: %ld\n", addr);
-  printf("old end in vmap ram: %ld\n", addr);
   int pgn = PAGING_PGN(addr);// dòng pte bắt đầu 
   // get the pos of next pte 
   uint32_t *pte= malloc(sizeof(uint32_t));
@@ -549,10 +547,10 @@ int print_pgtbl(struct pcb_t *caller, uint32_t start, uint32_t end)
   }
   pgn_start = PAGING_PGN(start);
   pgn_end = PAGING_PGN(end);
-
-  printf("print_pgtbl DATA: %d - %d", start, end);
-  if (caller == NULL) {printf("NULL caller\n"); return -1;}
-    printf("\n");
+  
+  if (caller == NULL) {
+    return -1;
+  }
 
   for(pgit = pgn_start; pgit < pgn_end; pgit++)
   {

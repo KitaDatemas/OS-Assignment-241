@@ -131,12 +131,6 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   if (inc_vma_limit(caller, vmaid, size, &inc_limit_ret) == -1) {
     return -1;
   }
-  printf("End in alloc: %ld\n", get_vma_by_num(caller->mm, vmaid)->vm_end);
-  // if (vmaid == 0)
-  //   printf("Put reg vmaid: %d, start: %ld, end: %ld to free rg list\n", caller->mm->mmap->vm_freerg_list->vmaid, caller->mm->mmap->vm_freerg_list->rg_start, caller->mm->mmap->vm_freerg_list->rg_end);
-  // else
-  //   printf("Put reg vmaid: %d, start: %ld, end: %ld to free rg list\n", caller->mm->mmap->vm_next->vm_freerg_list->vmaid, caller->mm->mmap->vm_next->vm_freerg_list->rg_start, caller->mm->mmap->vm_next->vm_freerg_list->rg_end);
-  
 
   /* TODO: commit the limit increment */
   get_free_vmrg_area(caller, vmaid, size, &rgnode);
@@ -496,7 +490,6 @@ int validate_overlap_vm_area(struct pcb_t *caller, int vmaid, int vmastart, int 
   /* TODO validate the planned memory area is not overlapped */
   while (vma) {
     if (OVERLAP(vmastart, vmaend, vma->vm_start, vma->vm_end)/*&& (vma->vm_start!=vma->vm_end)*/){
-      printf("Vma start: %ld, Vma end: %ld is overlapped with vma start: %ld, vma end: %ld\n", vmastart, vmaend, vma->vm_start, vma->vm_end);
       return -1;
     }
     vma = vma->vm_next;
@@ -537,11 +530,10 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz, int* inc_limit_re
   /* TODO: Obtain the new vm area based on vmaid */
   //cur_vma->vm_end... 
   // inc_limit_ret...
-  printf("incsz: %d, old_end: %ld, old sbrk: %ld\n", inc_sz, old_end, area->rg_start);
+  
   inc_amt = PAGING_PAGE_ALIGNSZ(inc_sz - (old_end - area->rg_start));
   incnumpage =  inc_amt / PAGING_PAGESZ;
 #ifdef MM_PAGING_HEAP_GODOWN
-  printf("End in inc_vma: %ld\n", get_vma_by_num(caller->mm, vmaid)->vm_end);
   if (vmaid == 1) {
     if (area->rg_end < cur_vma->vm_end)//Tang kich thuoc vma neu viec cap phat reg hop le
       cur_vma->vm_end -= inc_amt;
@@ -550,7 +542,6 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz, int* inc_limit_re
     if (area->rg_end > cur_vma->vm_end)
       cur_vma->vm_end += inc_amt;
   }
-  printf("End in inc_vma: %ld\n", get_vma_by_num(caller->mm, vmaid)->vm_end);
 #else
   if (vmaid == 1) {
     if (area->rg_end > cur_vma->vm_end)
@@ -565,15 +556,12 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz, int* inc_limit_re
   *inc_limit_ret = cur_vma->vm_end;
 
   
-  printf("Increase page num: %d %d\n", incnumpage, inc_amt);
-
-  printf("Old end in alloc before: %ld\n", old_end);
   if (vm_map_ram(caller, area->rg_start, area->rg_end, 
                     old_end, incnumpage , newrg, vmaid) < 0) {
     free(area);
     return -1; /* Map the memory to MEMRAM */
   }
-  printf("Old end in alloc after: %ld\n", old_end);
+  
   enlist_vm_freerg_list(caller->mm, *area);  
   free(area);
   free(newrg);
