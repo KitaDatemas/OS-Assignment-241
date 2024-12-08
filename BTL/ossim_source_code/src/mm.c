@@ -366,12 +366,17 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
 
   /* By default the owner comes with at least one vma for DATA */
 #ifdef MM_PAGING_HEAP_GODOWN
+  mm->mmap = vma0;
+  
   vma0->vm_id = 0;
+  
   vma0->vm_start = 0;
   vma0->vm_end = vma0->vm_start;
   vma0->sbrk = vma0->vm_start;
-  struct vm_rg_struct *first_rg = init_vm_rg(vma0->vm_start, vma0->vm_end, 0);
-  enlist_vm_rg_node(&vma0->vm_freerg_list, first_rg);
+  vma0->vm_freerg_list  = NULL;
+  // struct vm_rg_struct *first_rg = init_vm_rg(vma0->vm_start, vma0->vm_end, 0);
+  // first_rg->vmaid=0;
+  // enlist_vm_rg_node(&vma0->vm_freerg_list, first_rg);
 
   /* TODO update VMA0 next */
   vma0->vm_next= vma1;
@@ -380,9 +385,12 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
   vma1->vm_start= caller->vmemsz;
   vma1->vm_end= vma1->vm_start;
   vma1->sbrk = vma1->vm_start;
-  struct vm_rg_struct *first_rg_vma_1 = init_vm_rg(vma1->vm_start, vma1->vm_end, 0);
-  enlist_vm_rg_node(&vma1->vm_freerg_list, first_rg_vma_1);
+  // struct vm_rg_struct *first_rg_vma_1 = init_vm_rg(vma1->vm_start, vma1->vm_end, 0);
+  // first_rg_vma_1->vmaid=1;
+  vma1->vm_freerg_list = NULL;
+  // enlist_vm_rg_node(&vma1->vm_freerg_list, first_rg_vma_1);
   vma1->vm_next= NULL;
+
 
   // vma1->vm_id = ...
   // vma1->vm_start = ...

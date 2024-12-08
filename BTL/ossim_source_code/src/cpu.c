@@ -64,7 +64,9 @@ int run(struct pcb_t * proc) {
 		break;
 	case ALLOC:
 #ifdef MM_PAGING
+		printf("-----------ALLOC size %d put at reg %d-------------\n", ins.arg_0, ins.arg_1);
 		stat = pgalloc(proc, ins.arg_0, ins.arg_1);
+		printf("-----------END OF ALLOC-------------\n");
 
 #else
 		stat = alloc(proc, ins.arg_0, ins.arg_1);
@@ -72,18 +74,23 @@ int run(struct pcb_t * proc) {
 		break;
 #ifdef MM_PAGING
 	case MALLOC:
+	printf("-----------MALLOC size %d put at reg %d-------------\n", ins.arg_0, ins.arg_1);
 		stat = pgmalloc(proc, ins.arg_0, ins.arg_1);
+	printf("-----------END OF MALLOC-------------\n");
 		break;
 #endif
 	case FREE:
 #ifdef MM_PAGING
+		printf("-----------FREE at reg %d-------------\n", ins.arg_0);
 		stat = pgfree_data(proc, ins.arg_0);
+		printf("-----------END OF FREE-------------\n");
 #else
 		stat = free_data(proc, ins.arg_0);
 #endif
 		break;
 	case READ:
 #ifdef MM_PAGING
+		// printf("-----------MALLOC size %d put at reg %d-------------\n", ins.arg_0, ins.arg_1);
 		stat = pgread(proc, ins.arg_0, ins.arg_1, ins.arg_2);
 #else
 		stat = read(proc, ins.arg_0, ins.arg_1, ins.arg_2);
