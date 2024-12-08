@@ -1,0 +1,22 @@
+1 21
+alloc 20 1 
+alloc 20 0
+alloc 100 2
+alloc 16 3
+alloc 50 4
+alloc 50 5
+write 100 0 0
+write 101 1 0
+write 102 2 0
+write 103 3 0
+write 104 4 0
+write 105 5 0
+read 1 0 20
+read 3 0 20
+free 4
+free 2
+free 1
+free 0
+free 3
+free 5
+calc
