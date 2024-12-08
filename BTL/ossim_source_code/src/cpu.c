@@ -60,7 +60,9 @@ int run(struct pcb_t * proc) {
 	int stat = 1;
 	switch (ins.opcode) {
 	case CALC:
+		printf("-----------CALC-------------\n");
 		stat = calc(proc);
+		printf("-----------END OF CALC-------------\n");
 		break;
 	case ALLOC:
 #ifdef MM_PAGING
@@ -90,15 +92,18 @@ int run(struct pcb_t * proc) {
 		break;
 	case READ:
 #ifdef MM_PAGING
-		// printf("-----------MALLOC size %d put at reg %d-------------\n", ins.arg_0, ins.arg_1);
+		printf("-----------READ at reg %d with offset %d put to reg %d -------------\n", ins.arg_0, ins.arg_1, ins.arg_2);
 		stat = pgread(proc, ins.arg_0, ins.arg_1, ins.arg_2);
+		printf("-----------END OF READ-------------\n");
 #else
 		stat = read(proc, ins.arg_0, ins.arg_1, ins.arg_2);
 #endif
 		break;
 	case WRITE:
 #ifdef MM_PAGING
+		printf("-----------WRITE data %d put to reg %d with offset %d-------------\n", ins.arg_0, ins.arg_1, ins.arg_2);
 		stat = pgwrite(proc, ins.arg_0, ins.arg_1, ins.arg_2);
+		printf("-----------END OF WRITE-------------\n");
 #else
 		stat = write(proc, ins.arg_0, ins.arg_1, ins.arg_2);
 #endif

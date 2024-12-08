@@ -226,7 +226,7 @@ int alloc_pages_range(struct pcb_t *caller,
       int no_fpn_sw= fpn;
 
       if(find_victim_page(mm , &victim_page)<0){
-        printf("can't find victim page");
+        printf("can't find victim page\n");
       }
       // change the pte of victim_page to swap
       // find pte from victim page
@@ -238,7 +238,7 @@ int alloc_pages_range(struct pcb_t *caller,
       // after have the fpn in ram we  need to change the pte
       // in swaptype= 1 => swap in swap 1 | in acitve swap
       if(init_pte(pte,1, -1, 0, 1, 1, no_fpn_sw)!=0){
-          printf("can't change the pte from ram mode to ");
+          printf("can't change the pte from ram mode to swap\n");
       }
      __swap_cp_page(caller->mram, no_fpn_ram , caller->active_mswp, no_fpn_sw);
      mm->pgd[victim_page]=*pte;
