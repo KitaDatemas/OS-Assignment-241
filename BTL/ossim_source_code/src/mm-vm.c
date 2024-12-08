@@ -16,9 +16,15 @@
  */
 int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct rg_elmt)
 {
-  struct vm_rg_struct *rg_node = mm->mmap->vm_freerg_list;
 
-  if (rg_elmt.rg_start >= rg_elmt.rg_end)
+  struct vm_rg_struct *rg_node;
+  if (rg_elmt.vmaid == 0)
+    rg_node = mm->mmap->vm_freerg_list;
+  else
+    rg_node = mm->mmap->vm_next->vm_freerg_list;
+
+  if ((rg_elmt.rg_start >= rg_elmt.rg_end && rg_elmt.vmaid == 0)
+      && (rg_elmt.rg_end >= rg_elmt.rg_start && rg_elmt.vmaid == 1))
     return -1;
 
   struct vm_rg_struct * new_rg = malloc(sizeof(struct vm_rg_struct));
@@ -30,7 +36,10 @@ int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct rg_elmt)
     new_rg->rg_next = rg_node;
 
   /* Enlist the new region */
-  mm->mmap->vm_freerg_list = new_rg;
+  if (rg_elmt.vmaid == 0)
+    mm->mmap->vm_freerg_list = new_rg;
+  else
+    mm->mmap->vm_next->vm_freerg_list = new_rg;
 
   return 0;
 }
@@ -116,12 +125,16 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   /* TODO INCREASE THE LIMIT
    * inc_vma_limit(caller, vmaid, inc_sz)
    */
+  printf("\n");
   if (inc_vma_limit(caller, vmaid, size, &inc_limit_ret) == -1) {
     return -1;
   }
-
-  printf("Put reg vmaid: %d, start: %ld, end: %ld to free rg list\n", caller->mm->mmap->vm_freerg_list->vmaid, caller->mm->mmap->vm_freerg_list->rg_start, caller->mm->mmap->vm_freerg_list->rg_end);
+  if (vmaid == 0)
+    printf("Put reg vmaid: %d, start: %ld, end: %ld to free rg list\n", caller->mm->mmap->vm_freerg_list->vmaid, caller->mm->mmap->vm_freerg_list->rg_start, caller->mm->mmap->vm_freerg_list->rg_end);
+  else
+    printf("Put reg vmaid: %d, start: %ld, end: %ld to free rg list\n", caller->mm->mmap->vm_next->vm_freerg_list->vmaid, caller->mm->mmap->vm_next->vm_freerg_list->rg_start, caller->mm->mmap->vm_next->vm_freerg_list->rg_end);
   
+
   /* TODO: commit the limit increment */
   get_free_vmrg_area(caller, vmaid, size, &rgnode);
   printf("vmaid: %d, rgnode vmaid: %d\n", vmaid, rgnode.vmaid);
@@ -538,8 +551,23 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz, int* inc_limit_re
   enlist_vm_freerg_list(caller->mm, *area);  
   free(area);
   free(newrg);
+  if (vmaid == 1) {
+    if (caller->mm->mmap->vm_next->vm_freerg_list)
+      printf("free list in heap not null\n");
+    else 
+      printf("free list in heap is null\n");
+  } else {
+    if (caller->mm->mmap->vm_next->vm_freerg_list)
+      printf("free list in data not null\n");
+    else 
+      printf("free list in data is null\n");
+  }
 
-  printf("Put reg inside inc_vma with vmaid: %d, start: %ld, end: %ld to free rg list\n", caller->mm->mmap->vm_freerg_list->vmaid, caller->mm->mmap->vm_freerg_list->rg_start, caller->mm->mmap->vm_freerg_list->rg_end);
+  if (vmaid == 0)
+    printf("Put reg inside inc vma vmaid: %d, start: %ld, end: %ld to free rg list\n", caller->mm->mmap->vm_freerg_list->vmaid, caller->mm->mmap->vm_freerg_list->rg_start, caller->mm->mmap->vm_freerg_list->rg_end);
+  else
+    printf("Put reg inside inc vma vmaid: %d, start: %ld, end: %ld to free rg list\n", caller->mm->mmap->vm_next->vm_freerg_list->vmaid, caller->mm->mmap->vm_next->vm_freerg_list->rg_start, caller->mm->mmap->vm_next->vm_freerg_list->rg_end);
+  
   return 0;
 
 }
@@ -672,7 +700,7 @@ int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_s
 
  if(newrg->rg_start == -1) // new region not found
    return -1;
-
+  printf("Found suitable reg\n");
  return 0;
 }
 
