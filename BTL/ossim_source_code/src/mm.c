@@ -99,6 +99,7 @@ int vmap_page_range(struct pcb_t *caller, // process call
   int incr_descr;// to check it the 
   int pgit = 0;
   //printf("Old end: %ld\n", addr);
+  printf("old end in vmap ram: %ld\n", addr);
   int pgn = PAGING_PGN(addr);// dòng pte bắt đầu 
   // get the pos of next pte 
   uint32_t *pte= malloc(sizeof(uint32_t));
@@ -321,7 +322,6 @@ int vm_map_ram(struct pcb_t *caller, unsigned long astart, unsigned long aend, i
 #endif
      return -1;
   }
-
   /* it leaves the case of memory is enough but half in ram, half in swap
    * do the swaping all to swapper to get the all in ram */
   vmap_page_range(caller, mapstart, incpgnum, frm_lst, ret_rg,vmaid,astart, aend);

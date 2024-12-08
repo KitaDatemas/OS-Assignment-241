@@ -109,6 +109,9 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
 
     *alloc_addr = rgnode.rg_start;
 
+    #ifdef PAGETBL_DUMP
+     print_pgtbl(caller, 0, -1); //print max TBL
+    #endif
     return 0;
   }
   /* TODO: get_free_vmrg_area FAILED handle the region management (Fig.6)*/
@@ -128,6 +131,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   if (inc_vma_limit(caller, vmaid, size, &inc_limit_ret) == -1) {
     return -1;
   }
+  printf("End in alloc: %ld\n", get_vma_by_num(caller->mm, vmaid)->vm_end);
   // if (vmaid == 0)
   //   printf("Put reg vmaid: %d, start: %ld, end: %ld to free rg list\n", caller->mm->mmap->vm_freerg_list->vmaid, caller->mm->mmap->vm_freerg_list->rg_start, caller->mm->mmap->vm_freerg_list->rg_end);
   // else
@@ -141,7 +145,10 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   caller->mm->symrgtbl[rgid].rg_end = rgnode.rg_end;
   caller->mm->symrgtbl[rgid].vmaid = rgnode.vmaid;
   printf("Get region in alloc rgid %d vmaid %d: rg start: %ld, rg end: %ld\n", rgid, caller->mm->symrgtbl[rgid].vmaid, caller->mm->symrgtbl[rgid].rg_start, caller->mm->symrgtbl[rgid].rg_end);
-  
+
+  #ifdef PAGETBL_DUMP
+     print_pgtbl(caller, 0, -1); //print max TBL
+  #endif
   /* TODO: commit the allocation address 
   // *alloc_addr = ...
   */
@@ -489,6 +496,7 @@ int validate_overlap_vm_area(struct pcb_t *caller, int vmaid, int vmastart, int 
   /* TODO validate the planned memory area is not overlapped */
   while (vma) {
     if (OVERLAP(vmastart, vmaend, vma->vm_start, vma->vm_end)/*&& (vma->vm_start!=vma->vm_end)*/){
+      printf("Vma start: %ld, Vma end: %ld is overlapped with vma start: %ld, vma end: %ld\n", vmastart, vmaend, vma->vm_start, vma->vm_end);
       return -1;
     }
     vma = vma->vm_next;
@@ -513,14 +521,27 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz, int* inc_limit_re
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
   int old_end = cur_vma->vm_end;
   /*Validate overlap of obtained region */
-  if (validate_overlap_vm_area(caller, vmaid, area->rg_start, area->rg_end) < 0){//Kiem tra viec xin them co bi overlap voi vung khac hay khong
+  int new_start_vma = area->rg_start;
+
+  if (vmaid == 1) {
+    if (area->rg_start > old_end)
+      new_start_vma = old_end;
+  } else if (vmaid == 0) {
+    if (area->rg_start < old_end)
+      new_start_vma = old_end;
+  }
+
+  if (validate_overlap_vm_area(caller, vmaid, new_start_vma, area->rg_end) < 0){//Kiem tra viec xin them co bi overlap voi vung khac hay khong
     return -1; /*Overlap and failed allocation */
   }
-  
   /* TODO: Obtain the new vm area based on vmaid */
   //cur_vma->vm_end... 
   // inc_limit_ret...
+  printf("incsz: %d, old_end: %ld, old sbrk: %ld\n", inc_sz, old_end, area->rg_start);
+  inc_amt = PAGING_PAGE_ALIGNSZ(inc_sz - (old_end - area->rg_start));
+  incnumpage =  inc_amt / PAGING_PAGESZ;
 #ifdef MM_PAGING_HEAP_GODOWN
+  printf("End in inc_vma: %ld\n", get_vma_by_num(caller->mm, vmaid)->vm_end);
   if (vmaid == 1) {
     if (area->rg_end < cur_vma->vm_end)//Tang kich thuoc vma neu viec cap phat reg hop le
       cur_vma->vm_end -= inc_amt;
@@ -529,6 +550,7 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz, int* inc_limit_re
     if (area->rg_end > cur_vma->vm_end)
       cur_vma->vm_end += inc_amt;
   }
+  printf("End in inc_vma: %ld\n", get_vma_by_num(caller->mm, vmaid)->vm_end);
 #else
   if (vmaid == 1) {
     if (area->rg_end > cur_vma->vm_end)
@@ -542,11 +564,16 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz, int* inc_limit_re
 
   *inc_limit_ret = cur_vma->vm_end;
 
+  
+  printf("Increase page num: %d %d\n", incnumpage, inc_amt);
+
+  printf("Old end in alloc before: %ld\n", old_end);
   if (vm_map_ram(caller, area->rg_start, area->rg_end, 
                     old_end, incnumpage , newrg, vmaid) < 0) {
     free(area);
     return -1; /* Map the memory to MEMRAM */
   }
+  printf("Old end in alloc after: %ld\n", old_end);
   enlist_vm_freerg_list(caller->mm, *area);  
   free(area);
   free(newrg);
