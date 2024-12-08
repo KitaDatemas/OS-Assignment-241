@@ -98,7 +98,7 @@ int vmap_page_range(struct pcb_t *caller, // process call
   int fpn;
   int incr_descr;// to check it the 
   int pgit = 0;
-  printf("Old end: %ld\n", addr);
+  //printf("Old end: %ld\n", addr);
   int pgn = PAGING_PGN(addr);// dòng pte bắt đầu 
   // get the pos of next pte 
   uint32_t *pte= malloc(sizeof(uint32_t));
@@ -126,7 +126,7 @@ int vmap_page_range(struct pcb_t *caller, // process call
   }else{
     incr_descr=1;
   }
-  printf("start page addr: %d\n", pgn);
+  //printf("start page addr: %d\n", pgn);
   for(pgit=0; pgit<pgnum; pgit++){
     if(!fpit){
       printf("NO frame in %d\n", pgit);
@@ -187,7 +187,7 @@ int alloc_pages_range(struct pcb_t *caller,
   {
     if(MEMPHY_get_freefp(caller->mram, &fpn) == 0)
    {
-    printf("Frame: %d\n",fpn);
+    //printf("Frame: %d\n",fpn);
     newfp_str= malloc(sizeof(struct framephy_struct));
     newfp_str->fpn = fpn;
     newfp_str->owner = mm;
@@ -367,7 +367,7 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
   /* By default the owner comes with at least one vma for DATA */
 #ifdef MM_PAGING_HEAP_GODOWN
   mm->mmap = vma0;
-  
+
   vma0->vm_id = 0;
   
   vma0->vm_start = 0;
