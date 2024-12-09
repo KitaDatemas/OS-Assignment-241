@@ -234,7 +234,6 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
     int tgtfpn = PAGING_PTE_SWP(pte);//the target frame storing our variable
 
-    /* TODO: Play with your paging theory here */
     /* Find victim page */
     find_victim_page(caller->mm, &vicpgn);
     if (vicpgn == -1)
@@ -247,7 +246,6 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     if (swpfpn == -1)
         return -1;
 
-
     /* Do swap frame from MEMRAM to MEMSWP and vice versa*/
     /* Copy victim frame to swap */
     __swap_cp_page(caller->mram, vicfpn, *(caller->mswp), swpfpn);
@@ -258,7 +256,6 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     pte_set_swap(&mm->pgd[vicpgn], 1, PAGING_OFFST(vicpgn));
 
     /* Update its online status of the target page */
-//    pte_set_fpn() & mm->pgd[pgn];
     pte_set_fpn(&mm->pgd[pgn], tgtfpn);
 
     enlist_pgn_node(&caller->mm->fifo_pgn,pgn);
