@@ -64,14 +64,17 @@ int run(struct pcb_t * proc) {
 		stat = calc(proc);
 		break;
 	case ALLOC:
-#ifdef MM_PAGING
 		printf("-----------ALLOC size %d put at reg %d-------------\n", ins.arg_0, ins.arg_1);
+#ifdef MM_PAGING
 		stat = pgalloc(proc, ins.arg_0, ins.arg_1);
-		printf("-----------END OF ALLOC-------------\n");
+		if (stat == -2)
+			printf("Can not alloc due to reallocate to the same reg\n");
 
 #else
 		stat = alloc(proc, ins.arg_0, ins.arg_1);
+		printf("Can not alloc due to reallocate to the same reg\n");
 #endif
+		printf("-----------END OF ALLOC-------------\n");
 		break;
 #ifdef MM_PAGING
 	case MALLOC:
@@ -81,15 +84,17 @@ int run(struct pcb_t * proc) {
 		break;
 #endif
 	case FREE:
-#ifdef MM_PAGING
 		printf("-----------FREE at reg %d-------------\n", ins.arg_0);
+#ifdef MM_PAGING
 		stat = pgfree_data(proc, ins.arg_0);
 		if (stat != 0)
 			printf("Free an invalid region\n");
-		printf("------------END OF FREE--------------\n");
 #else
 		stat = free_data(proc, ins.arg_0);
+		if (stat != 0)
+			printf("Free an invalid region\n");
 #endif
+		printf("------------END OF FREE--------------\n");
 		break;
 	case READ:
 #ifdef MM_PAGING
@@ -97,10 +102,12 @@ int run(struct pcb_t * proc) {
 		stat = pgread(proc, ins.arg_0, ins.arg_1, ins.arg_2);
 		if (stat != 0)
 			printf("Invalid read region\n");
-		printf("------------END OF READ--------------\n");
 #else
 		stat = read(proc, ins.arg_0, ins.arg_1, ins.arg_2);
+		if (stat != 0)
+			printf("Invalid read region\n");
 #endif
+		printf("------------END OF READ--------------\n");
 		break;
 	case WRITE:
 #ifdef MM_PAGING
@@ -108,10 +115,12 @@ int run(struct pcb_t * proc) {
 		stat = pgwrite(proc, ins.arg_0, ins.arg_1, ins.arg_2);
 		if (stat != 0)
 			printf("Invalid write region\n");
-		printf("-------------END OF WRITE---------------\n");
 #else
 		stat = write(proc, ins.arg_0, ins.arg_1, ins.arg_2);
+		if (stat != 0)
+			printf("Invalid write region\n");
 #endif
+		printf("-------------END OF WRITE---------------\n");
 		break;
 	default:
 		stat = 1;
