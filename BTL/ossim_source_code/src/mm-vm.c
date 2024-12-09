@@ -364,7 +364,8 @@ int pgread(
 #endif
   MEMPHY_dump(proc->mram);
 #endif
-
+  if (val == 0)
+			printf("Read value: %ld\n", data);
   return val;
 }
 

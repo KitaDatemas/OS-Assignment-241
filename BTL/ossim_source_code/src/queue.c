@@ -16,9 +16,10 @@ void enqueue(struct queue_t * q, struct pcb_t * proc) {
 
     int idx = q->size++;
     for (;
-            idx - 1 >= 0 && q->proc[idx - 1]->priority > proc->priority;
-            idx--)
-        q->proc[idx] = q->proc[idx - 1] ;//Add a new process at the end of the queue has the same priority value, then increase the size
+         idx - 1 >= 0 && q->proc[idx - 1]->priority > proc->priority;
+         idx--) {
+            q->proc[idx] = q->proc[idx - 1];//Add a new process at the end of the queue has the same priority value, then increase the size
+        }
     q->proc[idx] = proc;
 }
 
