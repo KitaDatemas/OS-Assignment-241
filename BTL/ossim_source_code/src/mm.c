@@ -135,7 +135,6 @@ int vmap_page_range(struct pcb_t *caller,           /* process call */
     struct framephy_struct *temp = fpit;
     fpit = fpit->fp_next;
     fpn = fpit->fpn;
-    printf("Frame: %d\n", fpn);
     /* use this because the when fpit is the last the next is null
        it can made some problem 
     */
@@ -144,7 +143,6 @@ int vmap_page_range(struct pcb_t *caller,           /* process call */
       printf("init_pte failed\n");
     }
     caller->mm->pgd[pgn + incr_descr * pgit] = *pte;
-    printf("pte: %p\n", caller->mm->pgd[pgn + incr_descr * pgit]);
   
     enlist_pgn_node(&caller->mm->fifo_pgn, pgn + pgit);
 
@@ -572,6 +570,7 @@ int print_pgtbl(struct pcb_t *caller, uint32_t start, uint32_t end)
   pgn_start = PAGING_PGN(start);
   pgn_end = PAGING_PGN(end);
 
+  printf("print_pgtbl DATA: %d - %d\n", start, end);
   if (caller == NULL)
   {
     return -1;
@@ -591,13 +590,11 @@ int print_pgtbl(struct pcb_t *caller, uint32_t start, uint32_t end)
   }
   pgn_start = PAGING_PGN(start);
   pgn_end = PAGING_PGN(end);
-  printf("print_pgtbl HEAP: %d - %d", start, end);
+  printf("print_pgtbl HEAP: %d - %d\n", start, end);
   if (caller == NULL)
   {
-    printf("NULL caller\n");
     return -1;
   }
-  printf("\n");
 
   for (pgit = pgn_start; pgit > pgn_end; pgit--)
   {

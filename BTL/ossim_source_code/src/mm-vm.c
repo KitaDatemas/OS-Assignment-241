@@ -173,7 +173,7 @@ int __free(struct pcb_t *caller, int rgid)
     return -1;
 
   /* enlist the obsoleted memory region */
-  printf("Put free rg vmaid %d: rg start: %ld, rg end: %ld\n", rgnode.vmaid, rgnode.rg_start, rgnode.rg_end);
+  printf("Put free rg calling from __free() vmaid %d: rg start: %ld, rg end: %ld\n", rgnode.vmaid, rgnode.rg_start, rgnode.rg_end);
 
   enlist_vm_freerg_list(caller->mm, rgnode);
 
@@ -577,11 +577,6 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz, int *inc_limit_re
   free(area);
   free(newrg);
 
-  if (vmaid == 0)
-    printf("Put reg inside inc vma vmaid: %d, start: %ld, end: %ld to free rg list\n", caller->mm->mmap->vm_freerg_list->vmaid, caller->mm->mmap->vm_freerg_list->rg_start, caller->mm->mmap->vm_freerg_list->rg_end);
-  else
-    printf("Put reg inside inc vma vmaid: %d, start: %ld, end: %ld to free rg list\n", caller->mm->mmap->vm_next->vm_freerg_list->vmaid, caller->mm->mmap->vm_next->vm_freerg_list->rg_start, caller->mm->mmap->vm_next->vm_freerg_list->rg_end);
-
   return 0;
 }
 
@@ -595,10 +590,8 @@ int find_victim_page(struct mm_struct *mm, int *retpgn)
   struct pgn_t **pg = &(mm->fifo_pgn),
                *deletePage;
 
-  printf("Find victim page\n");
   if (*pg == NULL)
     return -1;
-  printf("Page list not null\n");
 
   /* Vì fifo_pgn là danh sách các trang đang được sử dụng, 
    * khi thêm 1 trang sử dụng mới sẽ được thêm vào đầu. 
@@ -633,7 +626,7 @@ int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_s
 
   /* Probe unintialized newrg */
   newrg->rg_start = newrg->rg_end = -1;
-  printf("Find free region\n");
+
   if (rgit != NULL)
     /* Traverse on list of free vm region to find a fit space */
     while (rgit != NULL && rgit->vmaid == vmaid)
@@ -722,7 +715,7 @@ int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_s
 
   if (newrg->rg_start == -1) /* new region not found */
     return -1;
-  printf("Found suitable reg\n");
+
   return 0;
 }
 
