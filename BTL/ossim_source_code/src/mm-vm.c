@@ -167,13 +167,20 @@ int __free(struct pcb_t *caller, int rgid)
   if(rgid < 0 || rgid > PAGING_MAX_SYMTBL_SZ)
     return -1;
 
+
   /* TODO: Manage the collect freed region to freerg_list */
   if (get_symrg_byid(caller->mm, rgid) == NULL) return -1;
   rgnode = *get_symrg_byid(caller->mm, rgid);
 
+  if (rgnode.rg_start == rgnode.rg_end)
+    return -1;
+    
   /*enlist the obsoleted memory region */
   printf("Put free rg vmaid %d: rg start: %ld, rg end: %ld\n", rgnode.vmaid, rgnode.rg_start, rgnode.rg_end);
   enlist_vm_freerg_list(caller->mm, rgnode);
+
+  rgnode.rg_start = 0;
+  rgnode.rg_end = 0;
 
   return 0;
 }
@@ -441,8 +448,6 @@ int free_pcb_memph(struct pcb_t *caller)
 struct vm_rg_struct* get_vm_area_node_at_brk(struct pcb_t *caller, int vmaid, int size, int alignedsz)
 {
   struct vm_rg_struct * newrg;
-
-  /* TODO retrive current vma to obtain newrg, current comment out due to compiler redundant warning*/
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);//Lay ra vma hien tai
 
   if (cur_vma == NULL)
@@ -450,8 +455,6 @@ struct vm_rg_struct* get_vm_area_node_at_brk(struct pcb_t *caller, int vmaid, in
 
   newrg = malloc(sizeof(struct vm_rg_struct));
 
-  /* TODO: update the newrg boundary
-  */
   newrg->vmaid = vmaid;
 
   if (vmaid) {
@@ -461,13 +464,9 @@ struct vm_rg_struct* get_vm_area_node_at_brk(struct pcb_t *caller, int vmaid, in
       cur_vma->sbrk -= size;
   }
   else {
-    // printf("cur_vma->sbrk: %ld, cur_vma->end: %ld\n", cur_vma->sbrk, cur_vma->vm_end);
 
       newrg->rg_start = cur_vma->sbrk;
       newrg->rg_end = cur_vma->sbrk + size;
-
-      // printf("area->rg start: %ld, ", newrg->rg_start);
-      // printf("area->rg end: %ld\n", newrg->rg_end);
 
       cur_vma->sbrk += size;
   }
@@ -584,11 +583,11 @@ int find_victim_page(struct mm_struct *mm, int *retpgn)
   struct pgn_t **pg = &(mm->fifo_pgn),
                 *deletePage;
 
-  /* TODO: Implement the theorical mechanism to find the victim page */
   printf("Find victim page\n");
   if (*pg == NULL)      return -1;
   printf("Page list not null\n");
-  while ((*pg)->pg_next != NULL) // Vì fifo_pgn là danh sách các trang đã được sử dụng, khi thêm 1 trang sử dụng mới sẽ được thêm vào đầu. Do đó cần chọn thằng lâu nhất được add vào
+  while ((*pg)->pg_next != NULL) // Vì fifo_pgn là danh sách các trang đang được sử dụng, khi thêm 1 trang sử dụng mới sẽ được thêm vào đầu. Do đó cần chọn trang đầu tiên được add vào ở cuối hàng
+
       pg = &((*pg)->pg_next);
   *retpgn = (*pg)->pgn;
   deletePage = (*pg);

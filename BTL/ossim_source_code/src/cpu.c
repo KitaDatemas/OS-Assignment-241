@@ -84,6 +84,8 @@ int run(struct pcb_t * proc) {
 #ifdef MM_PAGING
 		printf("-----------FREE at reg %d-------------\n", ins.arg_0);
 		stat = pgfree_data(proc, ins.arg_0);
+		if (stat != 0)
+			printf("Free an invalid region\n");
 		printf("------------END OF FREE--------------\n");
 #else
 		stat = free_data(proc, ins.arg_0);
