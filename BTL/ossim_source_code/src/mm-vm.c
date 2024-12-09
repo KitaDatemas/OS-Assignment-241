@@ -182,8 +182,8 @@ int __free(struct pcb_t *caller, int rgid)
   printf("Put free rg vmaid %d: rg start: %ld, rg end: %ld\n", rgnode.vmaid, rgnode.rg_start, rgnode.rg_end);
   enlist_vm_freerg_list(caller->mm, rgnode);
 
-  rgnode.rg_start = 0;
-  rgnode.rg_end = 0;
+  caller->mm->symrgtbl[rgid].rg_start = 0;
+  caller->mm->symrgtbl[rgid].rg_end = 0;
 
   return 0;
 }
