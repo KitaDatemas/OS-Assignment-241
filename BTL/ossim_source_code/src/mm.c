@@ -417,22 +417,24 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
   /* TODO: update mmap */
   mm->mmap = vma0;
 #else /* not MM_PAGING_HEAP_GODOWN */
+  mm->mmap = vma0;
+
   vma0->vm_id = 0;
-  vma0->vm_start = BIT(PAGING_CPU_BUS_WIDTH);
+
+  vma0->vm_start = 0;
   vma0->vm_end = vma0->vm_start;
   vma0->sbrk = vma0->vm_start;
-  struct vm_rg_struct *first_rg = init_vm_rg(vma0->vm_start, vma0->vm_end, 0);
-  enlist_vm_rg_node(&vma0->vm_freerg_list, first_rg);
+  vma0->vm_freerg_list = NULL;
 
   /* TODO update VMA0 next */
   vma0->vm_next = vma1;
   /* TODO: update one vma for HEAP */
   vma1->vm_id = 1;
-  vma1->vm_start = 0;
+  vma1->vm_start = caller->vmemsz/2; 
   vma1->vm_end = vma1->vm_start;
   vma1->sbrk = vma1->vm_start;
-  struct vm_rg_struct *first_rg_vma_1 = init_vm_rg(vma1->vm_start, vma1->vm_end, 0);
-  enlist_vm_rg_node(&vma1->vm_freerg_list, first_rg_vma_1);
+  vma1->vm_freerg_list = NULL;
+
   vma1->vm_next = NULL;
 
   /* Point vma owner backward */
