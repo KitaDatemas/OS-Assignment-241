@@ -57,7 +57,7 @@ struct mm_struct {
    struct vm_rg_struct symrgtbl[PAGING_MAX_SYMTBL_SZ];//Bảng với số phần tử cố định các vùng nhớ ảo (used virtual memory region) đã sử dụng
 
    /* list of free page */
-   struct pgn_t *fifo_pgn;//TODO TÌM HIỂU SAU NÀY THẦY GỢI Ý
+   struct pgn_t *fifo_pgn;
 };
 
 /*

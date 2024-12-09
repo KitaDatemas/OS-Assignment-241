@@ -93,6 +93,8 @@ int run(struct pcb_t * proc) {
 #ifdef MM_PAGING
 		printf("-----------READ at reg %d with offset %d put to reg %d -------------\n", ins.arg_0, ins.arg_1, ins.arg_2);
 		stat = pgread(proc, ins.arg_0, ins.arg_1, ins.arg_2);
+		if (stat != 0)
+			printf("Invalid read region\n");
 		printf("------------END OF READ--------------\n");
 #else
 		stat = read(proc, ins.arg_0, ins.arg_1, ins.arg_2);
@@ -102,6 +104,8 @@ int run(struct pcb_t * proc) {
 #ifdef MM_PAGING
 		printf("-----------WRITE data %d put to reg %d with offset %d-------------\n", ins.arg_0, ins.arg_1, ins.arg_2);
 		stat = pgwrite(proc, ins.arg_0, ins.arg_1, ins.arg_2);
+		if (stat != 0)
+			printf("Invalid write region\n");
 		printf("-------------END OF WRITE---------------\n");
 #else
 		stat = write(proc, ins.arg_0, ins.arg_1, ins.arg_2);

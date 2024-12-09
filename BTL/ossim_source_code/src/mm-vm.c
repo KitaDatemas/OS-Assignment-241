@@ -225,7 +225,7 @@ int pgfree_data(struct pcb_t *proc, uint32_t reg_index)
 int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 {
   uint32_t pte = mm->pgd[pgn];
- 
+
   if (!PAGING_PTE_PAGE_PRESENT(pte))
   { /* Page is not online, make it actively living */
     int vicpgn, swpfpn; 
@@ -330,7 +330,7 @@ int __read(struct pcb_t *caller, int rgid, int offset, BYTE *data)
 
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
 
-  if(currg == NULL || cur_vma == NULL) /* Invalid memory identify */
+  if(currg == NULL || cur_vma == NULL || currg->rg_start == currg->rg_end) /* Invalid memory identify */
 	  return -1;
 
   pg_getval(caller->mm, currg->rg_start + offset, data, caller);
@@ -376,8 +376,10 @@ int __write(struct pcb_t *caller, int rgid, int offset, BYTE value)
 
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
   
-  if(currg == NULL || cur_vma == NULL) /* Invalid memory identify */
-	  return -1;
+  if(currg == NULL || cur_vma == NULL || currg->rg_start == currg->rg_end) {
+    /* Invalid memory identify */
+    return -1;
+  } 
 
   pg_setval(caller->mm, currg->rg_start + offset, value, caller);
 
@@ -586,7 +588,9 @@ int find_victim_page(struct mm_struct *mm, int *retpgn)
                 *deletePage;
 
   /* TODO: Implement the theorical mechanism to find the victim page */
+  printf("Find victim page\n");
   if (*pg == NULL)      return -1;
+  printf("Page list not null\n");
   while ((*pg)->pg_next != NULL) // Vì fifo_pgn là danh sách các trang đã được sử dụng, khi thêm 1 trang sử dụng mới sẽ được thêm vào đầu. Do đó cần chọn thằng lâu nhất được add vào
       pg = &((*pg)->pg_next);
   *retpgn = (*pg)->pgn;
