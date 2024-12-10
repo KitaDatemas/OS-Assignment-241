@@ -9,30 +9,34 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-/*enlist_vm_freerg_list - add new rg to freerg_list
- *@mm: memory region
- *@rg_elmt: new region
- *
- */
-
-
 int count_free_rg(struct pcb_t *caller, int vmaid) {
-  if (caller == NULL)   return 0;
+  if (caller == NULL)
+    return 0;
   int count = 0;
   struct vm_area_struct * vma = get_vma_by_num(caller->mm, vmaid);
   struct vm_rg_struct * head = vma->vm_freerg_list;
-  printf("Free region list in vmaid: %d: ", vmaid);
-  while (head != NULL) {
-    if(head->rg_start != head->rg_end) {
+  printf("Free region list in vmaid %d: ", vmaid);
+  if (!head)
+    printf("NULL");
+  else {
+    while (head != NULL) {
       count++;
-      printf("[%ld, %ld]->", head->rg_start, head->rg_end);
+      if (!head->rg_next)
+        printf("[%ld, %ld]->NULL", head->rg_start, head->rg_end);
+      else
+        printf("[%ld, %ld]->", head->rg_start, head->rg_end);
+      head = head->rg_next;
     }
-    head = head->rg_next;
   }
   printf("\n");
   return count;
 }
 
+/*enlist_vm_freerg_list - add new rg to freerg_list
+ *@mm: memory region
+ *@rg_elmt: new region
+ *
+ */
 int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct rg_elmt)
 {
     struct vm_rg_struct *rg_node;
@@ -54,7 +58,7 @@ int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct rg_elmt)
     new_rg->vmaid = rg_elmt.vmaid;
     new_rg->rg_start = rg_elmt.rg_start;
     new_rg->rg_end = rg_elmt.rg_end;
-    new_rg->rg_next = NULL;  // New region will be the last element
+    new_rg->rg_next = NULL;  /* New region will be the last element */
 
     if (rg_node == NULL) {
         if (rg_elmt.vmaid == 0)
@@ -62,7 +66,7 @@ int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct rg_elmt)
         else
             mm->mmap->vm_next->vm_freerg_list = new_rg;
     } else {
-        // Traverse to the last element of the list
+        /* Traverse to the last element of the list */
         struct vm_rg_struct *last_rg = rg_node;
         while (last_rg->rg_next != NULL) {
             last_rg = last_rg->rg_next;
@@ -654,13 +658,12 @@ int find_victim_page(struct mm_struct *mm, int *retpgn)
 int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_struct *newrg)
 {
   struct vm_area_struct *cur_vma = get_vma_by_num(caller->mm, vmaid);
-
   struct vm_rg_struct *rgit = cur_vma->vm_freerg_list;
 
   if (rgit == NULL)
     return -1;
 
-  /* Probe unintialized newrg */
+  /* Probe uninitialized newrg */
   newrg->rg_start = newrg->rg_end = -1;
 
   if (rgit != NULL)
@@ -689,15 +692,12 @@ int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_s
             {
               rgit->rg_start = nextrg->rg_start;
               rgit->rg_end = nextrg->rg_end;
-
               rgit->rg_next = nextrg->rg_next;
 
               free(nextrg);
             }
             else
             { /* End of free list */
-              // printf("wrong update\n");
-              
               rgit->rg_start = rgit->rg_end;
               rgit->rg_next = NULL;
             }
@@ -731,7 +731,6 @@ int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_s
             {
               rgit->rg_start = nextrg->rg_start;
               rgit->rg_end = nextrg->rg_end;
-
               rgit->rg_next = nextrg->rg_next;
 
               free(nextrg);
@@ -754,8 +753,34 @@ int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_s
   if (newrg->rg_start == -1) /* new region not found */
     return -1;
 
+  /* Delete regions with the same start and end */
+  rgit = cur_vma->vm_freerg_list;
+  struct vm_rg_struct *prev = NULL;
+
+  while (rgit != NULL)
+  {
+    if (rgit->rg_start == rgit->rg_end)
+    {
+      struct vm_rg_struct *nextrg = rgit->rg_next;
+
+      if (prev != NULL)
+        prev->rg_next = nextrg;
+      else
+        cur_vma->vm_freerg_list = nextrg;
+
+      free(rgit);
+      rgit = nextrg;
+    }
+    else
+    {
+      prev = rgit;
+      rgit = rgit->rg_next;
+    }
+  }
+
   return 0;
 }
+
 
 int helper(struct pcb_t *caller, int rgid) {
   struct vm_rg_struct *rgnode = get_symrg_byid(caller->mm, rgid);
