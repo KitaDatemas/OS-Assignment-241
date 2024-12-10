@@ -88,6 +88,8 @@ int run(struct pcb_t *proc)
   case MALLOC:
     printf("-----------MALLOC size %d put at reg %d-------------\n", ins.arg_0, ins.arg_1);
     stat = pgmalloc(proc, ins.arg_0, ins.arg_1);
+    if (stat < 0)
+      printf("Can't initialize memory\n");
     printf("-----------END OF MALLOC-------------\n");
     break;
 #endif /* MM_PAGING */

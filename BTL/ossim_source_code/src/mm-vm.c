@@ -21,41 +21,56 @@ int count_free_rg(struct pcb_t *caller, int vmaid) {
   int count = 0;
   struct vm_area_struct * vma = get_vma_by_num(caller->mm, vmaid);
   struct vm_rg_struct * head = vma->vm_freerg_list;
+  printf("Free region list in vmaid: %d: ", vmaid);
   while (head != NULL) {
-    if(head->rg_start != head->rg_end) count++;
+    if(head->rg_start != head->rg_end) {
+      count++;
+      printf("[%ld, %ld]->", head->rg_start, head->rg_end);
+    }
     head = head->rg_next;
   }
+  printf("\n");
   return count;
 }
 
 int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct rg_elmt)
 {
+    struct vm_rg_struct *rg_node;
 
-  struct vm_rg_struct *rg_node;
-  if (rg_elmt.vmaid == 0)
-    rg_node = mm->mmap->vm_freerg_list;
-  else
-    rg_node = mm->mmap->vm_next->vm_freerg_list;
+    if (rg_elmt.vmaid == 0)
+        rg_node = mm->mmap->vm_freerg_list;
+    else
+        rg_node = mm->mmap->vm_next->vm_freerg_list;
 
-  if ((rg_elmt.rg_start >= rg_elmt.rg_end && rg_elmt.vmaid == 0) 
-      && (rg_elmt.rg_end >= rg_elmt.rg_start && rg_elmt.vmaid == 1))
-    return -1;
+    if ((rg_elmt.rg_start >= rg_elmt.rg_end && rg_elmt.vmaid == 0) 
+        || (rg_elmt.rg_end >= rg_elmt.rg_start && rg_elmt.vmaid == 1))
+        return -1;
 
-  struct vm_rg_struct *new_rg = malloc(sizeof(struct vm_rg_struct));
-  new_rg->vmaid = rg_elmt.vmaid;
-  new_rg->rg_start = rg_elmt.rg_start;
-  new_rg->rg_end = rg_elmt.rg_end;
+    struct vm_rg_struct *new_rg = malloc(sizeof(struct vm_rg_struct));
+    if (new_rg == NULL) {
+        return -1;
+    }
 
-  if (rg_node != NULL)
-    new_rg->rg_next = rg_node;
+    new_rg->vmaid = rg_elmt.vmaid;
+    new_rg->rg_start = rg_elmt.rg_start;
+    new_rg->rg_end = rg_elmt.rg_end;
+    new_rg->rg_next = NULL;  // New region will be the last element
 
-  /* Enlist the new region */
-  if (rg_elmt.vmaid == 0)
-    mm->mmap->vm_freerg_list = new_rg;
-  else
-    mm->mmap->vm_next->vm_freerg_list = new_rg;
+    if (rg_node == NULL) {
+        if (rg_elmt.vmaid == 0)
+            mm->mmap->vm_freerg_list = new_rg;
+        else
+            mm->mmap->vm_next->vm_freerg_list = new_rg;
+    } else {
+        // Traverse to the last element of the list
+        struct vm_rg_struct *last_rg = rg_node;
+        while (last_rg->rg_next != NULL) {
+            last_rg = last_rg->rg_next;
+        }
+        last_rg->rg_next = new_rg;
+    }
 
-  return 0;
+    return 0;
 }
 
 /*get_vma_by_num - get vm area by numID
@@ -114,6 +129,8 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   // printf("free region list before alloc: %d\n", count_free_rg(caller, vmaid));
   if (caller->mm->symrgtbl[rgid].rg_start != caller->mm->symrgtbl[rgid].rg_end)
     return -2;
+  if (caller->mm->symrgtbl[rgid].rg_start == -1)
+    return -2;
 
   if (get_free_vmrg_area(caller, vmaid, size, &rgnode) == 0)
   {
@@ -121,6 +138,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
     caller->mm->symrgtbl[rgid].rg_end = rgnode.rg_end;
 
     caller->mm->symrgtbl[rgid].vmaid = rgnode.vmaid;
+  printf("Get region in alloc rgid %d vmaid: %d, rg start: %ld, rg end: %ld\n", rgid, caller->mm->symrgtbl[rgid].vmaid, caller->mm->symrgtbl[rgid].rg_start, caller->mm->symrgtbl[rgid].rg_end);
 
     *alloc_addr = rgnode.rg_start;
 
@@ -192,8 +210,8 @@ int __free(struct pcb_t *caller, int rgid)
 
   enlist_vm_freerg_list(caller->mm, rgnode);
 
-  caller->mm->symrgtbl[rgid].rg_start = 0;
-  caller->mm->symrgtbl[rgid].rg_end = 0;
+  caller->mm->symrgtbl[rgid].rg_start = -1;
+  caller->mm->symrgtbl[rgid].rg_end = -1;
 
   return 0;
 }
@@ -367,12 +385,14 @@ int pgread(
   int val = __read(proc, source, offset, &data);
 
   destination = (uint32_t)data;
+  printf("rg start: %ld\n",  proc->mm->symrgtbl[source].rg_start);
 #ifdef IODUMP
   printf("read region=%d offset=%d value=%d\n", source, offset, data);
 #ifdef PAGETBL_DUMP
   print_pgtbl(proc, 0, -1); /* print max TBL */
 #endif /* PAGETBL_DUMP */
-  MEMPHY_dump(proc->mram);
+  // MEMPHY_dump(proc->mram);
+  MEMPHY_dump1(proc->mram, proc->mm->symrgtbl[source].rg_start + offset, proc);
 #endif /* IODUMP */
   if (val == 0)
     printf("Read value: %ld\n", data);
@@ -417,7 +437,7 @@ int pgwrite(
 #ifdef PAGETBL_DUMP
   print_pgtbl(proc, 0, -1); /* print max TBL */
 #endif /* PAGETBL_DUMP */
-  MEMPHY_dump(proc->mram);
+  MEMPHY_dump1(proc->mram, proc->mm->symrgtbl[destination].rg_start + offset, proc);
 #endif /* IODUMP */
 
   return __write(proc, destination, offset, data);
@@ -513,6 +533,7 @@ int validate_overlap_vm_area(struct pcb_t *caller, int vmaid,
     }
     vma = vma->vm_next;
   }
+
 
   return 0;
 }

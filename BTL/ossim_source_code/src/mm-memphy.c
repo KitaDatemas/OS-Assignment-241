@@ -157,6 +157,34 @@ int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
   return 0;
 }
 
+int MEMPHY_dump1(struct memphy_struct *mp, long long address, struct pcb_t * caller)
+{
+  /*TODO dump memphy contnt mp->storage
+   *     for tracing the memory content
+   */
+
+  
+  if (mp == NULL || mp->storage == NULL || mp->maxsz == 0)
+  {
+    printf("Invalid memory\n");
+    return -1;
+  }
+  int pgn = PAGING_PGN(address);
+  int off = PAGING_OFFST(address);
+  int fpn;
+  pg_getpage(caller->mm, pgn, &fpn, caller);
+  int phyaddr = (fpn << PAGING_ADDR_FPN_LOBIT) + off;
+  BYTE * value;
+  *value = mp->storage[phyaddr];
+  printf("\n-----------This is MEMPHY_dump-----------\n");
+  printf("    Address\t\tValue\n");
+  printf("0x%08lx\t\t0x%08x\n",  
+        (unsigned long int)(phyaddr), 
+        mp->storage[phyaddr]);
+  printf("-----------End of MEMPHY_dump-----------\n");
+  return 0;
+}
+
 int MEMPHY_dump(struct memphy_struct *mp)
 {
   /*TODO dump memphy contnt mp->storage
