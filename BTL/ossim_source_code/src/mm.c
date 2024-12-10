@@ -27,11 +27,18 @@ int init_pte(uint32_t *pte,
         return -1; /* Invalid setting */
 
       /* Valid setting with FPN */
+      SETVAL(*pte, 0,0xFFFFFFFF,0);
       SETBIT(*pte, PAGING_PTE_PRESENT_MASK);
       CLRBIT(*pte, PAGING_PTE_SWAPPED_MASK);
       CLRBIT(*pte, PAGING_PTE_DIRTY_MASK);
 
+      SETVAL(*pte, swptyp, PAGING_PTE_SWPTYP_MASK, PAGING_PTE_SWPTYP_LOBIT);
+      SETVAL(*pte, swpoff, PAGING_PTE_SWPOFF_MASK, PAGING_PTE_SWPOFF_LOBIT);
+   
       SETVAL(*pte, fpn, PAGING_PTE_FPN_MASK, PAGING_PTE_FPN_LOBIT);
+      printf("fpn in init : %d", fpn);
+      printf("pre: %d, drt: %d, swp: %d\n", pre, drt, swp);
+      printf("*pte is : %p\n ", *pte);
     }
     else
     { /* page swapped */
@@ -88,7 +95,7 @@ int vmap_page_range(struct pcb_t *caller,           /* process call */
                     int pgnum,                      /* num of mapping page */
                     struct framephy_struct *frames, /* list of the
                                                        mapped frames */
-                    struct vm_rg_struct *ret_rg,    /* return mapped region,  
+                    struct vm_rg_struct *ret_rg,    /* return mapped region,
                                                        the real mapped fp */
                     int vmaid,
                     unsigned long astart,
@@ -135,16 +142,19 @@ int vmap_page_range(struct pcb_t *caller,           /* process call */
     struct framephy_struct *temp = fpit;
     fpit = fpit->fp_next;
     fpn = fpit->fpn;
+    printf("Frame: %d", fpn);
     /* use this because the when fpit is the last the next is null
-       it can made some problem 
+       it can made some problem
     */
     if (init_pte(pte, 1, fpn, 0, 0, 0, 0) != 0)
     {
       printf("init_pte failed\n");
     }
+    printf("*pte is : %p\n ", *pte);
     caller->mm->pgd[pgn + incr_descr * pgit] = *pte;
-  
-    enlist_pgn_node(&caller->mm->fifo_pgn, pgn + pgit);
+    printf("pte: %p \n", caller->mm->pgd[pgn + incr_descr * pgit]);
+    if (enlist_pgn_node(&(caller->mm->fifo_pgn), pgn + pgit) == 0)
+      printf("first page in fifo page %d\n", caller->mm->fifo_pgn->pgn);
 
     if (temp)
     {
@@ -198,8 +208,8 @@ int alloc_pages_range(struct pcb_t *caller,
       }
       else
       {
-        /* Otherwise, traverse to the last element and 
-           add the new frame to the tail 
+        /* Otherwise, traverse to the last element and
+           add the new frame to the tail
          */
         struct framephy_struct *temp = *frm_lst;
         while (temp->fp_next != NULL)
@@ -210,7 +220,7 @@ int alloc_pages_range(struct pcb_t *caller,
       }
 
       /* add fram into used frame list if we need we can use it,
-         maybe it is unused in this assignment 
+         maybe it is unused in this assignment
        */
       struct framephy_struct *new_used_ls = malloc(sizeof(struct framephy_struct));
       new_used_ls->fpn = fpn;
@@ -223,32 +233,38 @@ int alloc_pages_range(struct pcb_t *caller,
 
       if (MEMPHY_get_freefp(caller->active_mswp, &fpn) == 0)
       {
-        /* nếu không tìm được chỗ trống trong mram tìm page phải 
+        /* nếu không tìm được chỗ trống trong mram tìm page phải
          * giải phóng một frame trong page và đổi chỗ với **mswp
          *  tìm chỗ trống trong active_swap nếu có thì hoán đổi ô nhớ trống.
          *  tìm pte của ô nhớ trong ram cần được thay
          * thay pte trỏ tới vùng swap
          * cập nhật frm_lst với fpn là fpn của ram
-         * Detail change the data of the victime_page->fpn to the swap 
+         * Detail change the data of the victime_page->fpn to the swap
          * and add new data to this
          */
-        int victim_page;
+        int victim_page = -1;
         int no_fpn_sw = fpn;
 
         if (find_victim_page(mm, &victim_page) < 0)
         {
+          if (mm->fifo_pgn == NULL)
+            ("fifo page is null\n");
           printf("can't find victim page\n");
         }
+
+        printf("Victim page is %d\n ", victim_page);
         /* change the pte of victim_page to swap */
         /* find pte from victim page */
         uint32_t *pte = malloc(sizeof(uint32_t));
         *pte = mm->pgd[victim_page];
-        int no_fpn_ram = PAGING_PTE_FPN(*pte);
+        // printf("pte is %p: \n", mm->pgd[victim_page]);
+        int no_fpn_ram = PAGING_PTE_FPN(mm->pgd[victim_page]);
+        printf("no_fpn_ram is %d\n", no_fpn_ram);
         /* get fpn in ram to change the data with swap
            after have the fpn in ram we  need to change the pte
            in swaptype= 1 => swap in swap 1 | in acitve swap
          */
-        if (init_pte(pte, 1, -1, 0, 1, 1, no_fpn_sw) != 0)
+        if (init_pte(pte, 1, 0, 0, 1, 1, no_fpn_sw) != 0)
         {
           printf("can't change the pte from ram mode to swap\n");
         }
@@ -258,7 +274,7 @@ int alloc_pages_range(struct pcb_t *caller,
         /* swap the content of no_fpn_ram to no_fpn_swap */
         /* create the framestruct again with the fpn=no_fpn_ram */
         newfp_str = malloc(sizeof(struct framephy_struct));
-        newfp_str->fpn = fpn;
+        newfp_str->fpn = no_fpn_ram;
         newfp_str->owner = mm;
         newfp_str->fp_next = NULL;
 
@@ -266,10 +282,11 @@ int alloc_pages_range(struct pcb_t *caller,
         if (*frm_lst == NULL)
         {
           *frm_lst = newfp_str;
+          printf("fpn number is: %d \n", newfp_str->fpn);
         }
         else
         {
-          /* Otherwise, traverse to the last element and 
+          /* Otherwise, traverse to the last element and
              add the new frame to the tail
            */
           struct framephy_struct *temp = *frm_lst;
@@ -278,6 +295,8 @@ int alloc_pages_range(struct pcb_t *caller,
             temp = temp->fp_next;
           }
           temp->fp_next = newfp_str;
+          printf("fpn number is: %d \n", newfp_str->fpn);
+          printf("fpn number is: %d \n", temp->fp_next->fpn);
         }
         /* add a new list */
         struct framephy_struct *new_used_ls = malloc(sizeof(struct framephy_struct));
@@ -299,7 +318,7 @@ int alloc_pages_range(struct pcb_t *caller,
         else
           return -1;
         /* return because there is no empty space in */
-        /* can get freefp in the **swmem but in this assignment 
+        /* can get freefp in the **swmem but in this assignment
            we only use one swap so just use active_mswp
          */
       }
@@ -414,7 +433,7 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
 
   /* TODO: update mmap */
   mm->mmap = vma0;
-#else /* not MM_PAGING_HEAP_GODOWN */
+#else  /* not MM_PAGING_HEAP_GODOWN */
   mm->mmap = vma0;
 
   vma0->vm_id = 0;
@@ -428,7 +447,7 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
   vma0->vm_next = vma1;
   /* TODO: update one vma for HEAP */
   vma1->vm_id = 1;
-  vma1->vm_start = caller->vmemsz/2; 
+  vma1->vm_start = caller->vmemsz / 2;
   vma1->vm_end = vma1->vm_start;
   vma1->sbrk = vma1->vm_start;
   vma1->vm_freerg_list = NULL;
@@ -458,7 +477,7 @@ struct vm_rg_struct *init_vm_rg(int rg_start, int rg_end, int vmaid)
   return rgnode;
 }
 
-int enlist_vm_rg_node(struct vm_rg_struct **rglist, 
+int enlist_vm_rg_node(struct vm_rg_struct **rglist,
                       struct vm_rg_struct *rgnode)
 {
   rgnode->rg_next = *rglist;
