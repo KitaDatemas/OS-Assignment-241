@@ -14,6 +14,20 @@
  *@rg_elmt: new region
  *
  */
+
+
+int count_free_rg(struct pcb_t *caller, int vmaid) {
+  if (caller == NULL)   return 0;
+  int count = 0;
+  struct vm_area_struct * vma = get_vma_by_num(caller->mm, vmaid);
+  struct vm_rg_struct * head = vma->vm_freerg_list;
+  while (head != NULL) {
+    if(head->rg_start != head->rg_end) count++;
+    head = head->rg_next;
+  }
+  return count;
+}
+
 int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct rg_elmt)
 {
 
@@ -97,7 +111,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
 
   /* TODO: commit the vmaid */
   rgnode.vmaid = vmaid;
-
+  // printf("free region list before alloc: %d\n", count_free_rg(caller, vmaid));
   if (caller->mm->symrgtbl[rgid].rg_start != caller->mm->symrgtbl[rgid].rg_end)
     return -2;
 
@@ -130,6 +144,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
   }
 
   /* TODO: commit the limit increment */
+  // printf("free region list after alloc: %d\n", count_free_rg(caller, vmaid));
   get_free_vmrg_area(caller, vmaid, size, &rgnode);
   caller->mm->symrgtbl[rgid].rg_start = rgnode.rg_start;
   caller->mm->symrgtbl[rgid].rg_end = rgnode.rg_end;
@@ -660,6 +675,8 @@ int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_s
             }
             else
             { /* End of free list */
+              // printf("wrong update\n");
+              
               rgit->rg_start = rgit->rg_end;
               rgit->rg_next = NULL;
             }
@@ -717,6 +734,19 @@ int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_s
     return -1;
 
   return 0;
+}
+
+int helper(struct pcb_t *caller, int rgid) {
+  struct vm_rg_struct *rgnode = get_symrg_byid(caller->mm, rgid);
+  printf("Region start: %ld, Region end: %ld, Region vmaid: %d\n", rgnode->rg_start, rgnode->rg_end, rgnode->vmaid);
+
+  printf("Number of free region in data: %d\n", count_free_rg(caller, 0));
+  printf("Number of free region in heap: %d\n", count_free_rg(caller, 1));
+}
+
+int pgaddr(struct pcb_t *proc, uint32_t reg_index)
+{
+  return helper(proc, reg_index);
 }
 
 // #endif

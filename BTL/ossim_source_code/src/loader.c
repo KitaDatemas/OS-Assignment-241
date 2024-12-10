@@ -13,6 +13,7 @@ static uint32_t avail_pid = 1;
 #define OPT_WRITE "write"
 #ifdef MM_PAGING
 #define OPT_MALLOC "malloc"
+#define OPT_ADDR "addr"
 #endif /* not MM_PAGING */
 
 static enum ins_opcode_t get_opcode(char *opt)
@@ -42,6 +43,10 @@ static enum ins_opcode_t get_opcode(char *opt)
   else if (!strcmp(opt, OPT_WRITE))
   {
     return WRITE;
+  }
+  else if (!strcmp(opt, OPT_ADDR))
+  {
+    return ADDR;
   }
   else
   {
@@ -108,6 +113,9 @@ struct pcb_t *load(const char *path)
           &proc->code->text[i].arg_0,
           &proc->code->text[i].arg_1,
           &proc->code->text[i].arg_2);
+      break;
+    case ADDR:
+      fscanf(file, "%u\n", &proc->code->text[i].arg_0);
       break;
     default:
       printf("Opcode: %s\n", opcode);

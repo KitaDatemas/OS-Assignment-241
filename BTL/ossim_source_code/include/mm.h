@@ -128,6 +128,8 @@ int __read(struct pcb_t *caller, int rgid, int offset, BYTE *data);
 int __write(struct pcb_t *caller, int rgid, int offset, BYTE value);
 int init_mm(struct mm_struct *mm, struct pcb_t *caller);
 
+int helper(struct pcb_t *caller, int rgid);
+
 /* VM prototypes */
 int pgalloc(struct pcb_t *proc, uint32_t size, uint32_t reg_index);
 int pgmalloc(struct pcb_t *proc, uint32_t size, uint32_t reg_index);
@@ -142,6 +144,9 @@ int pgwrite(
 		BYTE data, // Data to be wrttien into memory
 		uint32_t destination, // Index of destination register
 		uint32_t offset);
+
+int pgaddr(struct pcb_t *proc, uint32_t reg_index);
+
 /* Local VM prototypes */
 struct vm_rg_struct * get_symrg_byid(struct mm_struct* mm, int rgid);
 int validate_overlap_vm_area(struct pcb_t *caller, int vmaid, int vmastart, int vmaend);

@@ -130,6 +130,15 @@ int run(struct pcb_t *proc)
 #endif /* MM_PAGING */
     printf("-------------END OF WRITE---------------\n");
     break;
+  case ADDR:
+    printf("-----------ADDR at reg %d-------------\n", ins.arg_0);
+#ifdef MM_PAGING
+    stat = pgaddr(proc, ins.arg_0);
+#else /* not MM_PAGING*/
+    // stat = free_data(proc, ins.arg_0);
+#endif /* MM_PAGING */
+    printf("------------END OF ADDR--------------\n");
+    break;
   default:
     stat = 1;
   }
