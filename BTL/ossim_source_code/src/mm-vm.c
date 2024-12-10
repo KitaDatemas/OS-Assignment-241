@@ -537,7 +537,7 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz, int *inc_limit_re
     return -1; /*Overlap and failed allocation */
   }
   /* TODO: Obtain the new vm area based on vmaid */
-  inc_amt = PAGING_PAGE_ALIGNSZ(inc_sz - (old_end - area->rg_start));
+  inc_amt = PAGING_PAGE_ALIGNSZ(abs(inc_sz - abs(old_end - area->rg_start)));
   incnumpage = inc_amt / PAGING_PAGESZ;
 
 #ifdef MM_PAGING_HEAP_GODOWN
